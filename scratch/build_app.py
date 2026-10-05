@@ -1,6 +1,5 @@
 import sys
 import os
-import shutil
 
 html_content = r'''<!DOCTYPE html>
 <html lang="es">
@@ -859,28 +858,6 @@ html_content = r'''<!DOCTYPE html>
             color: var(--text-muted);
         }
 
-        /* NETLIFY BANNER */
-        .netlify-banner {
-            background: linear-gradient(135deg, #0e7490 0%, #0369a1 100%);
-            color: white;
-            border-radius: var(--radius-md);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .netlify-banner h4 {
-            font-size: 1.15rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
         /* VECTOR CANVAS */
         #vectorCanvas {
             background: #ffffff;
@@ -947,10 +924,6 @@ html_content = r'''<!DOCTYPE html>
             }
             .stats-grid {
                 grid-template-columns: 1fr;
-            }
-            .netlify-banner {
-                flex-direction: column;
-                text-align: center;
             }
         }
     </style>
@@ -1024,13 +997,13 @@ html_content = r'''<!DOCTYPE html>
                 </div>
                 <div class="hero-feature-card">
                     <div class="hero-feature-icon"><i class="fa-solid fa-pen-nib"></i></div>
-                    <h3>Evaluación Formativa</h3>
-                    <p>10 problemas de opción múltiple con retroalimentación matemática detallada y formateo de matrices en KaTeX.</p>
+                    <h3>Evaluación Dinámica</h3>
+                    <p>Banco aleatorio de preguntas con retroalimentación matemática detallada y generación de tests únicos.</p>
                 </div>
                 <div class="hero-feature-card">
-                    <div class="hero-feature-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
-                    <h3>Listo para Netlify</h3>
-                    <p>Optimizado con `index.html` para publicar y compartir instantáneamente en la web con compañeros de clase.</p>
+                    <div class="hero-feature-icon"><i class="fa-solid fa-earth-americas"></i></div>
+                    <h3>Aplicaciones Reales</h3>
+                    <p>Casos prácticos contextualizados en Ingeniería, Economía, Computación (IA) y Física.</p>
                 </div>
             </div>
         </section>
@@ -1665,17 +1638,6 @@ html_content = r'''<!DOCTYPE html>
         <!-- 7. PESTAÑA EVALUACIÓN -->
         <section id="tab-evaluacion" class="tab-panel">
             <div class="quiz-container">
-                <!-- NETLIFY BANNER EN EVALUACION -->
-                <div class="netlify-banner">
-                    <div>
-                        <h4><i class="fa-solid fa-paper-plane"></i> Compartir esta aplicación en Netlify</h4>
-                        <p style="font-size: 0.9rem; opacity: 0.95;">Esta aplicación incluye `index.html` para subirla gratis a Netlify en segundos y compartirla con tus compañeros.</p>
-                    </div>
-                    <a href="https://app.netlify.com/drop" target="_blank" class="btn-secondary" style="background: white; color: #0369a1; text-decoration: none;">
-                        <i class="fa-solid fa-upload"></i> Subir a Netlify Drop
-                    </a>
-                </div>
-
                 <!-- QUIZ CARD -->
                 <div class="quiz-card" id="quiz-main-card">
                     <!-- PROGRESS & META -->
@@ -1777,7 +1739,7 @@ html_content = r'''<!DOCTYPE html>
     <!-- FOOTER -->
     <footer class="app-footer">
         <p>📐 ÁLGEBRA LINEAL — Aplicación Educativa Universitaria Interactivas</p>
-        <p style="font-size: 0.8rem; margin-top: 0.4rem; opacity: 0.8;">Desarrollada para potenciar la educación técnica y científica de nivel universitario. Lista para publicar en Netlify.</p>
+        <p style="font-size: 0.8rem; margin-top: 0.4rem; opacity: 0.8;">Desarrollada para potenciar la educación técnica y científica de nivel universitario.</p>
     </footer>
 
     <!-- JAVASCRIPT LOGIC -->
@@ -2212,93 +2174,277 @@ html_content = r'''<!DOCTYPE html>
         }
 
         /* ===================================================
-           5. BANCO DE PREGUNTAS Y EVALUACIÓN (10 PREGUNTAS)
+           5. BANCO DE PREGUNTAS DINÁMICO Y MOTOR DE ALEATORIZACIÓN
            =================================================== */
-        const quizData = [
-            {
-                q: "1. ¿Cuál es el orden o dimensión de una matriz que contiene 3 filas y 4 columnas?",
-                options: ["A) $4 \\times 3$", "B) $3 \\times 4$", "C) $12 \\times 1$"],
-                correct: 1,
-                feedback: "La respuesta es correcta porque el orden de una matriz se expresa siempre como $m \\times n$, donde $m$ representa el número de filas (3) y $n$ el número de columnas (4). Por lo tanto, su dimensión es $3 \\times 4$."
-            },
-            {
-                q: "2. ¿Cómo se denomina a la matriz cuadrada cuyos elementos de la diagonal principal son todos iguales a 1 y los demás elementos fuera de ella son 0?",
-                options: ["A) Matriz Nula ($O$)", "B) Matriz Diagonal", "C) Matriz Identidad ($I_n$)"],
-                correct: 2,
-                feedback: "La respuesta es correcta porque la matriz identidad $I_n$ es una matriz cuadrada especial donde todos sus elementos diagonales valen 1 ($a_{ii}=1$) y todas las entradas fuera de la diagonal son cero ($a_{ij}=0$ para $i \\neq j$)."
-            },
-            {
-                q: "3. Dadas las matrices $A = \\begin{pmatrix} 2 & 3 \\\\ 1 & 4 \\end{pmatrix}$ y $B = \\begin{pmatrix} 1 & -1 \\\\ 0 & 2 \\end{pmatrix}$, ¿cuál es el resultado de la operación $A + 2B$?",
-                options: [
-                    "A) $\\begin{pmatrix} 4 & 1 \\\\ 1 & 8 \\end{pmatrix}$", 
-                    "B) $\\begin{pmatrix} 3 & 2 \\\\ 1 & 6 \\end{pmatrix}$", 
-                    "C) $\\begin{pmatrix} 4 & 5 \\\\ 2 & 10 \\end{pmatrix}$"
-                ],
-                correct: 0,
-                feedback: "La respuesta es correcta porque al multiplicar $B$ por 2 obtenemos $2B = \\begin{pmatrix} 2 & -2 \\\\ 0 & 4 \\end{pmatrix}$. Luego al sumar con $A$: $A + 2B = \\begin{pmatrix} 2+2 & 3+(-2) \\\\ 1+0 & 4+4 \\end{pmatrix} = \\begin{pmatrix} 4 & 1 \\\\ 1 & 8 \\end{pmatrix}$."
-            },
-            {
-                q: "4. ¿En qué condición es posible realizar la multiplicación de dos matrices $A_{m \\times n}$ y $B_{p \\times q}$?",
-                options: ["A) Cuando $m = p$", "B) Cuando $n = p$", "C) Cuando $m = q$"],
-                correct: 1,
-                feedback: "La respuesta es correcta porque la multiplicación de matrices $A \\cdot B$ exige que el número de columnas de la primera matriz ($n$) sea exactamente igual al número de filas de la segunda matriz ($p$). La matriz resultante tendrá orden $m \\times q$."
-            },
-            {
-                q: "5. ¿Cuál es el determinante de la matriz $A = \\begin{pmatrix} 3 & 5 \\\\ 2 & 4 \\end{pmatrix}$?",
-                options: ["A) $2$", "B) $22$", "C) $-2$"],
-                correct: 0,
-                feedback: "La respuesta es correcta porque para una matriz $2 \\times 2$, el determinante se obtiene mediante la resta del producto de la diagonal secundaria al producto de la diagonal principal: $|A| = ad - bc = (3)(4) - (5)(2) = 12 - 10 = 2$."
-            },
-            {
-                q: "6. En un sistema de ecuaciones lineales $A \\vec{x} = \\vec{b}$, si el determinante de la matriz de coeficientes es diferente de cero ($\\det(A) \\neq 0$), ¿qué tipo de sistema representa?",
-                options: ["A) Sistema Compatible Determinado (Solución única)", "B) Sistema Compatible Indeterminado (Infinitas soluciones)", "C) Sistema Incompatible (Sin solución)"],
-                correct: 0,
-                feedback: "La respuesta es correcta porque cuando $\\det(A) \\neq 0$, la matriz de coeficientes $A$ es invertible ($A^{-1}$ existe) y la solución única viene dada por $\\vec{x} = A^{-1}\\vec{b}$, lo cual corresponde a un Sistema Compatible Determinado."
-            },
-            {
-                q: "7. ¿Cuál es la matriz aumentada correspondiente al sistema de ecuaciones $\\begin{cases} 2x + 3y = 7 \\\\ x - y = 1 \\end{cases}$?",
-                options: [
-                    "A) $\\left[\\begin{array}{cc|c} 2 & 3 & 7 \\\\ 1 & -1 & 1 \\end{array}\\right]$", 
-                    "B) $\\left[\\begin{array}{cc|c} 2 & 1 & 7 \\\\ 3 & -1 & 1 \\end{array}\\right]$", 
-                    "C) $\\left[\\begin{array}{cc|c} 2 & 3 & 1 \\\\ 1 & -1 & 7 \\end{array}\\right]$"
-                ],
-                correct: 0,
-                feedback: "La respuesta es correcta porque la matriz aumentada $[A|b]$ agrupa la matriz de coeficientes en la parte izquierda y la columna de constantes a la derecha: Fila 1 con $(2, 3 | 7)$ y Fila 2 con $(1, -1 | 1)$."
-            },
-            {
-                q: "8. Al aplicar la operación elemental por filas $F_2 \\rightarrow F_2 - 3F_1$ sobre las filas $F_1 = (1, 2, 4)$ y $F_2 = (3, 7, 10)$, ¿cuál es el resultado de la nueva fila $F_2$?",
-                options: ["A) $(0, 1, -2)$", "B) $(0, 1, 2)$", "C) $(3, 1, -2)$"],
-                correct: 0,
-                feedback: "La respuesta es correcta porque calculando elemento a elemento: $F_2 - 3F_1 = (3 - 3(1), 7 - 3(2), 10 - 3(4)) = (3-3, 7-6, 10-12) = (0, 1, -2)$."
-            },
-            {
-                q: "9. ¿Qué propiedad caracteriza fundamentalmente a la Forma Escalonada Reducida por Filas en el método de Gauss-Jordan?",
-                options: [
-                    "A) El primer elemento no nulo de cada fila es 1 (pivote) y en la columna de cada pivote los demás elementos son cero.", 
-                    "B) Únicamente los elementos por debajo de la diagonal principal son igual a cero.", 
-                    "C) El determinante de la matriz siempre se transforma en cero."
-                ],
-                correct: 0,
-                feedback: "La respuesta es correcta porque en la Forma Escalonada Reducida por Filas (RREF), cada pivote es 1 y es el único elemento no nulo en su columna respectiva (haciendo ceros tanto arriba como abajo)."
-            },
-            {
-                q: "10. Dado el vector $\\vec{u} = (6, 8)$ en $\\mathbb{R}^2$, ¿cuál es su módulo (magnitud) $|\\vec{u}||$ y cuál es su vector unitario $\\hat{u}$?",
-                options: [
-                    "A) $|\\vec{u}|| = 10, \\quad \\hat{u} = (0.6, 0.8)$", 
-                    "B) $|\\vec{u}|| = 14, \\quad \\hat{u} = (6, 8)$", 
-                    "C) $|\\vec{u}|| = 100, \\quad \\hat{u} = (0.3, 0.4)$"
-                ],
-                correct: 0,
-                feedback: "La respuesta es correcta porque el módulo es $|\\vec{u}|| = \\sqrt{6^2 + 8^2} = \\sqrt{36 + 64} = \\sqrt{100} = 10$. El vector unitario se obtiene dividiendo cada componente entre el módulo: $\\hat{u} = \\left(\\frac{6}{10}, \\frac{8}{10}\\right) = (0.6, 0.8)$."
-            }
-        ];
+        const quizPool = {
+            // Categoría 1: Conceptos y Orden de Matrices
+            cat1: [
+                {
+                    q: "¿Cuál es el orden o dimensión de una matriz que contiene 3 filas y 4 columnas?",
+                    options: ["$4 \\times 3$", "$3 \\times 4$", "$12 \\times 1$"],
+                    correct: 1,
+                    feedback: "La respuesta es correcta porque el orden de una matriz se expresa siempre como $m \\times n$, donde $m$ representa el número de filas (3) y $n$ el número de columnas (4). Por lo tanto, su dimensión es $3 \\times 4$."
+                },
+                {
+                    q: "Dada la matriz $B = \\begin{pmatrix} 1 & 5 \\\\ 0 & 3 \\\\ -2 & 4 \\\\ 7 & 9 \\end{pmatrix}$, ¿cuál es su orden o dimensión?",
+                    options: ["$4 \\times 2$", "$2 \\times 4$", "$4 \\times 4$"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque la matriz posee 4 filas horizontales y 2 columnas verticales. Por lo tanto, su orden es $4 \\times 2$."
+                },
+                {
+                    q: "¿Cómo se denomina a la matriz cuadrada cuyos elementos de la diagonal principal son todos 1 y los demás elementos fuera de ella son 0?",
+                    options: ["Matriz Identidad ($I_n$)", "Matriz Nula ($O$)", "Matriz Diagonal"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque la matriz identidad $I_n$ es una matriz cuadrada especial caracterizada por poseer unos en su diagonal principal y ceros en el resto de entradas."
+                },
+                {
+                    q: "Si una matriz cuadrada $A$ satisface que $A = A^T$ (es idéntica a su matriz transpuesta), ¿cómo se clasifica?",
+                    options: ["Matriz Simétrica", "Matriz Antisimétrica", "Matriz Singular"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque una matriz simétrica cumple $a_{ij} = a_{ji}$ para todas sus entradas, lo que implica que $A = A^T$."
+                },
+                {
+                    q: "Dada la matriz $M = \\begin{pmatrix} 5 & 8 & -1 \\\\ 3 & 0 & 4 \\\\ -2 & 6 & 9 \\end{pmatrix}$, ¿cuál es el valor de la entrada $m_{23}$?",
+                    options: ["$4$", "$0$", "$-1$"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque el subíndice $m_{23}$ denota el elemento ubicado en la Fila 2 y Columna 3, cuyo valor es $4$."
+                }
+            ],
 
+            // Categoría 2: Operaciones con Matrices
+            cat2: [
+                {
+                    q: "Dadas las matrices $A = \\begin{pmatrix} 2 & 3 \\\\ 1 & 4 \\end{pmatrix}$ y $B = \\begin{pmatrix} 1 & -1 \\\\ 0 & 2 \\end{pmatrix}$, ¿cuál es el resultado de $A + 2B$?",
+                    options: ["$\\begin{pmatrix} 4 & 1 \\\\ 1 & 8 \\end{pmatrix}$", "$\\begin{pmatrix} 3 & 2 \\\\ 1 & 6 \\end{pmatrix}$", "$\\begin{pmatrix} 4 & 5 \\\\ 2 & 10 \\end{pmatrix}$"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque al multiplicar $B$ por 2 obtenemos $2B = \\begin{pmatrix} 2 & -2 \\\\ 0 & 4 \\end{pmatrix}$. Luego al sumar elemento a elemento con $A$: $A + 2B = \\begin{pmatrix} 2+2 & 3+(-2) \\\\ 1+0 & 4+4 \\end{pmatrix} = \\begin{pmatrix} 4 & 1 \\\\ 1 & 8 \\end{pmatrix}$."
+                },
+                {
+                    q: "Dadas las matrices $A = \\begin{pmatrix} 1 & 2 \\\\ 0 & 3 \\end{pmatrix}$ y $B = \\begin{pmatrix} 2 & 1 \\\\ 4 & 5 \\end{pmatrix}$, ¿cuál es el resultado de $3A - B$?",
+                    options: ["$\\begin{pmatrix} 1 & 5 \\\\ -4 & 4 \\end{pmatrix}$", "$\\begin{pmatrix} 5 & 7 \\\\ 4 & 14 \\end{pmatrix}$", "$\\begin{pmatrix} 3 & 6 \\\\ 0 & 9 \\end{pmatrix}$"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque $3A = \\begin{pmatrix} 3 & 6 \\\\ 0 & 9 \\end{pmatrix}$. Restando $B$: $3A - B = \\begin{pmatrix} 3-2 & 6-1 \\\\ 0-4 & 9-5 \\end{pmatrix} = \\begin{pmatrix} 1 & 5 \\\\ -4 & 4 \\end{pmatrix}$."
+                },
+                {
+                    q: "Dadas $A = \\begin{pmatrix} 1 & 2 \\\\ 0 & 1 \\end{pmatrix}$ y $B = \\begin{pmatrix} 3 & 4 \\\\ 2 & 1 \\end{pmatrix}$, ¿cuál es el producto $A \\cdot B$?",
+                    options: ["$\\begin{pmatrix} 7 & 6 \\\\ 2 & 1 \\end{pmatrix}$", "$\\begin{pmatrix} 3 & 8 \\\\ 0 & 1 \\end{pmatrix}$", "$\\begin{pmatrix} 5 & 4 \\\\ 2 & 3 \\end{pmatrix}$"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque multiplicando filas de $A$ por columnas de $B$: $c_{11} = 1(3)+2(2)=7$, $c_{12} = 1(4)+2(1)=6$, $c_{21} = 0(3)+1(2)=2$, $c_{22} = 0(4)+1(1)=1$."
+                },
+                {
+                    q: "¿En qué condición es posible realizar la multiplicación de dos matrices $A_{m \\times n}$ y $B_{p \\times q}$?",
+                    options: ["Cuando $n = p$", "Cuando $m = p$", "Cuando $m = q$"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque la multiplicación de matrices $A \\cdot B$ exige que el número de columnas de la primera matriz ($n$) sea exactamente igual al número de filas de la segunda matriz ($p$)."
+                },
+                {
+                    q: "De acuerdo con las propiedades de la transposición matricial, ¿a qué es igual la expresión $(A \\cdot B)^T$?",
+                    options: ["$B^T \\cdot A^T$", "$A^T \\cdot B^T$", "$(A + B)^T$"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque la transpuesta de un producto de matrices invierte el orden de sus factores: $(A \\cdot B)^T = B^T \\cdot A^T$."
+                }
+            ],
+
+            // Categoría 3: Determinantes
+            cat3: [
+                {
+                    q: "¿Cuál es el determinante de la matriz $A = \\begin{pmatrix} 3 & 5 \\\\ 2 & 4 \\end{pmatrix}$?",
+                    options: ["$2$", "$22$", "$-2$"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque para una matriz $2 \\times 2$, el determinante se obtiene mediante la resta del producto de la diagonal secundaria al producto de la diagonal principal: $|A| = ad - bc = (3)(4) - (5)(2) = 12 - 10 = 2$."
+                },
+                {
+                    q: "¿Cuál es el determinante de la matriz $B = \\begin{pmatrix} 6 & -2 \\\\ 3 & 4 \\end{pmatrix}$?",
+                    options: ["$30$", "$18$", "$-18$"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque $|B| = (6)(4) - (-2)(3) = 24 - (-6) = 24 + 6 = 30$."
+                },
+                {
+                    q: "Calcular el determinante de la matriz diagonal $D = \\begin{pmatrix} 4 & 0 & 0 \\\\ 0 & 3 & 0 \\\\ 0 & 0 & -2 \\end{pmatrix}$.",
+                    options: ["$-24$", "$24$", "$5$"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque el determinante de una matriz diagonal o triangular es igual al producto de los elementos de su diagonal principal: $|D| = (4)(3)(-2) = -24$."
+                },
+                {
+                    q: "Dados $\\det(A) = 5$ y $\\det(B) = -2$ para dos matrices cuadradas del mismo orden, ¿cuál es el valor de $\\det(A \\cdot B)$?",
+                    options: ["$-10$", "$3$", "$-2.5$"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque según la propiedad multiplicativa de los determinantes, $\\det(A \\cdot B) = \\det(A) \\cdot \\det(B) = (5)(-2) = -10$."
+                }
+            ],
+
+            // Categoría 4: Sistemas de Ecuaciones Lineales
+            cat4: [
+                {
+                    q: "En un sistema de ecuaciones $A \\vec{x} = \\vec{b}$, si $\\det(A) \\neq 0$, ¿qué tipo de sistema representa?",
+                    options: ["Sistema Compatible Determinado (Solución única)", "Sistema Compatible Indeterminado (Infinitas soluciones)", "Sistema Incompatible (Sin solución)"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque cuando $\\det(A) \\neq 0$, la matriz de coeficientes $A$ es invertible ($A^{-1}$ existe) y la solución única viene dada por $\\vec{x} = A^{-1}\\vec{b}$, lo cual corresponde a un Sistema Compatible Determinado."
+                },
+                {
+                    q: "¿Cuál es la matriz aumentada correspondiente al sistema de ecuaciones $\\begin{cases} 2x + 3y = 7 \\\\ x - y = 1 \\end{cases}$?",
+                    options: [
+                        "$\\left[\\begin{array}{cc|c} 2 & 3 & 7 \\\\ 1 & -1 & 1 \\end{array}\\right]$", 
+                        "$\\left[\\begin{array}{cc|c} 2 & 1 & 7 \\\\ 3 & -1 & 1 \\end{array}\\right]$", 
+                        "$\\left[\\begin{array}{cc|c} 2 & 3 & 1 \\\\ 1 & -1 & 7 \\end{array}\\right]$"
+                    ],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque la matriz aumentada $[A|b]$ agrupa la matriz de coeficientes en la parte izquierda y la columna de constantes a la derecha: Fila 1 con $(2, 3 | 7)$ y Fila 2 con $(1, -1 | 1)$."
+                },
+                {
+                    q: "Si un sistema de ecuaciones lineales no posee ninguna solución (representado por dos rectas paralelas no coincidentes), ¿cómo se clasifica?",
+                    options: ["Sistema Incompatible (SI)", "Sistema Compatible Indeterminado (SCI)", "Sistema Homogéneo"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque un sistema que carece de soluciones se clasifica como Incompatible (SI)."
+                },
+                {
+                    q: "Un sistema de ecuaciones de la forma $A \\vec{x} = \\vec{0}$ donde todas las constantes independientes son cero se denomina:",
+                    options: ["Sistema Homogéneo", "Sistema Incompatible", "Sistema Escalonado"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque un sistema con términos independientes nulos $\\vec{b} = \\vec{0}$ se denomina Homogéneo y siempre posee al menos la solución trivial $\\vec{x} = \\vec{0}$."
+                }
+            ],
+
+            // Categoría 5: Método de Gauss
+            cat5: [
+                {
+                    q: "Al aplicar la operación elemental por filas $F_2 \\rightarrow F_2 - 3F_1$ sobre las filas $F_1 = (1, 2, 4)$ y $F_2 = (3, 7, 10)$, ¿cuál es el resultado de la nueva fila $F_2$?",
+                    options: ["$(0, 1, -2)$", "$(0, 1, 2)$", "$(3, 1, -2)$"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque calculando elemento a elemento: $F_2 - 3F_1 = (3 - 3(1), 7 - 3(2), 10 - 3(4)) = (3-3, 7-6, 10-12) = (0, 1, -2)$."
+                },
+                {
+                    q: "¿Cuál es el objetivo principal de la Eliminación Gaussiana en la matriz aumentada de un sistema?",
+                    options: ["Transformar la matriz de coeficientes en una forma escalonada por filas (triangular superior)", "Calcular la transpuesta de la matriz de coeficientes", "Obtener siempre un determinante igual a 1"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque el método de Gauss busca llevar la matriz a la forma escalonada por filas para despejar las variables mediante sustitución hacia atrás."
+                },
+                {
+                    q: "Si $F_1 = (1, -3, 2)$ y $F_2 = (-2, 4, 1)$, ¿cuál es el resultado de la operación elemental $F_2 \\rightarrow F_2 + 2F_1$?",
+                    options: ["$(0, -2, 5)$", "$(0, -2, 3)$", "$(0, 2, 5)$"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque $F_2 + 2F_1 = (-2 + 2(1), 4 + 2(-3), 1 + 2(2)) = (0, 4 - 6, 1 + 4) = (0, -2, 5)$."
+                }
+            ],
+
+            // Categoría 6: Método de Gauss-Jordan
+            cat6: [
+                {
+                    q: "¿Qué propiedad caracteriza fundamentalmente a la Forma Escalonada Reducida por Filas en el método de Gauss-Jordan?",
+                    options: [
+                        "El primer elemento no nulo de cada fila es 1 (pivote) y en la columna de cada pivote los demás elementos son cero", 
+                        "Únicamente los elementos por debajo de la diagonal principal son igual a cero", 
+                        "El determinante de la matriz siempre se transforma en cero"
+                    ],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque en la Forma Escalonada Reducida por Filas (RREF), cada pivote es 1 y es el único elemento no nulo en su columna respectiva (haciendo ceros tanto arriba como abajo)."
+                },
+                {
+                    q: "¿Qué ventaja ofrece el método de Gauss-Jordan frente al método de Gauss tradicional?",
+                    options: [
+                        "Permite leer directamente la solución del sistema sin necesidad de realizar sustitución hacia atrás", 
+                        "Requiere un número menor de operaciones elementales", 
+                        "Funciona únicamente para matrices rectangulares"
+                    ],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque al transformar la matriz de coeficientes en la identidad $[I|\\vec{x}]$, los valores del vector solución se leen de forma directa en el bloque final."
+                },
+                {
+                    q: "Para calcular la matriz inversa $A^{-1}$ mediante Gauss-Jordan, ¿qué matriz aumentada inicial se debe construir?",
+                    options: ["$[A | I_n]$", "$[A | A^T]$", "$[A | \\vec{0}]$"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque se construye la matriz bloque $[A | I_n]$ y se aplican operaciones por fila hasta transformar el lado izquierdo en la identidad $I_n$, obteniendo $A^{-1}$ a la derecha."
+                }
+            ],
+
+            // Categoría 7: Vectores y Aplicaciones
+            cat7: [
+                {
+                    q: "Dado el vector $\\vec{u} = (6, 8)$ en $\\mathbb{R}^2$, ¿cuál es su módulo (magnitud) $|\\vec{u}||$ y cuál es su vector unitario $\\hat{u}$?",
+                    options: [
+                        "$|\\vec{u}|| = 10, \\quad \\hat{u} = (0.6, 0.8)$", 
+                        "$|\\vec{u}|| = 14, \\quad \\hat{u} = (6, 8)$", 
+                        "$|\\vec{u}|| = 100, \\quad \\hat{u} = (0.3, 0.4)$"
+                    ],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque el módulo es $|\\vec{u}|| = \\sqrt{6^2 + 8^2} = \\sqrt{36 + 64} = \\sqrt{100} = 10$. El vector unitario se obtiene dividiendo cada componente entre el módulo: $\\hat{u} = \\left(\\frac{6}{10}, \\frac{8}{10}\\right) = (0.6, 0.8)$."
+                },
+                {
+                    q: "Dado el vector $\\vec{v} = (3, -4, 12)$ en $\\mathbb{R}^3$, ¿cuál es su módulo o magnitud $|\\vec{v}||$?",
+                    options: ["$13$", "$11$", "$169$"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque $||\\vec{v}|| = \\sqrt{3^2 + (-4)^2 + 12^2} = \\sqrt{9 + 16 + 144} = \\sqrt{169} = 13$."
+                },
+                {
+                    q: "Si el producto escalar de dos vectores no nulos es cero ($\\vec{u} \\cdot \\vec{v} = 0$), ¿qué relación geométrica existe entre ellos?",
+                    options: ["Son Perpendiculares (Ortogonales)", "Son Paralelos", "Tienen la misma magnitud"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque $\\vec{u} \\cdot \\vec{v} = ||\\vec{u}|| ||\\vec{v}|| \\cos \\theta = 0 \\implies \\theta = 90^\\circ$, lo que significa que los vectores son ortogonales."
+                },
+                {
+                    q: "¿Qué modelo clásico en economía utiliza sistemas de ecuaciones matriciales para analizar la interdependencia de insumos entre sectores industriales?",
+                    options: ["Modelo Insumo-Producto de Leontief", "Cadenas de Markov de consumo", "Algoritmo PageRank"],
+                    correct: 0,
+                    feedback: "La respuesta es correcta porque el Modelo Insumo-Producto de Leontief utiliza matrices de coeficientes técnicos para determinar la producción requerida entre sectores de la economía."
+                }
+            ]
+        };
+
+        // Estado del Test Activo
+        let activeQuizSession = [];
         let quizCurrentIndex = 0;
         let quizScore = 0;
         let quizAnswers = [];
         let quizTimerSeconds = 0;
         let quizTimerInterval = null;
         let quizSelectedOption = null;
+
+        // Función de mezclado Fisher-Yates
+        function shuffleArray(arr) {
+            let array = [...arr];
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Genera una nueva prueba aleatoria de 10 preguntas equilibradas
+        function generateNewQuizSession() {
+            const qCat1 = shuffleArray(quizPool.cat1).slice(0, 2); // 2 de Cat 1
+            const qCat2 = shuffleArray(quizPool.cat2).slice(0, 2); // 2 de Cat 2
+            const qCat3 = shuffleArray(quizPool.cat3).slice(0, 1); // 1 de Cat 3
+            const qCat4 = shuffleArray(quizPool.cat4).slice(0, 2); // 2 de Cat 4
+            const qCat5 = shuffleArray(quizPool.cat5).slice(0, 1); // 1 de Cat 5
+            const qCat6 = shuffleArray(quizPool.cat6).slice(0, 1); // 1 de Cat 6
+            const qCat7 = shuffleArray(quizPool.cat7).slice(0, 1); // 1 de Cat 7
+
+            const rawSelection = [...qCat1, ...qCat2, ...qCat3, ...qCat4, ...qCat5, ...qCat6, ...qCat7];
+
+            // Mezclar opciones de respuesta A, B, C de cada pregunta
+            activeQuizSession = rawSelection.map((qItem, idx) => {
+                let qCopy = JSON.parse(JSON.stringify(qItem));
+                let correctString = qCopy.options[qCopy.correct];
+                
+                let shuffledOptions = shuffleArray(qCopy.options);
+                let newCorrectIndex = shuffledOptions.indexOf(correctString);
+
+                let formattedOptions = shuffledOptions.map((optText, oIdx) => {
+                    return `${String.fromCharCode(65 + oIdx)}) ${optText}`;
+                });
+
+                return {
+                    q: `${idx + 1}. ${qCopy.q}`,
+                    options: formattedOptions,
+                    correct: newCorrectIndex,
+                    feedback: qCopy.feedback
+                };
+            });
+
+            quizCurrentIndex = 0;
+            quizScore = 0;
+            quizAnswers = [];
+        }
 
         function startQuizTimer() {
             if (quizTimerInterval) clearInterval(quizTimerInterval);
@@ -2313,7 +2459,11 @@ html_content = r'''<!DOCTYPE html>
         }
 
         function loadQuestion() {
-            const qData = quizData[quizCurrentIndex];
+            if (activeQuizSession.length === 0) {
+                generateNewQuizSession();
+            }
+
+            const qData = activeQuizSession[quizCurrentIndex];
             quizSelectedOption = null;
 
             document.getElementById('q-curr').innerText = quizCurrentIndex + 1;
@@ -2351,7 +2501,7 @@ html_content = r'''<!DOCTYPE html>
                 return;
             }
 
-            const qData = quizData[quizCurrentIndex];
+            const qData = activeQuizSession[quizCurrentIndex];
             const isCorrect = (quizSelectedOption === qData.correct);
             quizAnswers.push({ selected: quizSelectedOption, isCorrect: isCorrect });
 
@@ -2379,7 +2529,7 @@ html_content = r'''<!DOCTYPE html>
 
         function nextQuestion() {
             quizCurrentIndex++;
-            if (quizCurrentIndex < quizData.length) {
+            if (quizCurrentIndex < activeQuizSession.length) {
                 loadQuestion();
             } else {
                 finishQuiz();
@@ -2419,9 +2569,8 @@ html_content = r'''<!DOCTYPE html>
         }
 
         function restartQuiz() {
-            quizCurrentIndex = 0;
-            quizScore = 0;
-            quizAnswers = [];
+            // Genera una NUEVA prueba con preguntas y alternativas aleatorias
+            generateNewQuizSession();
             document.getElementById('quiz-results-card').style.display = 'none';
             document.getElementById('quiz-main-card').style.display = 'block';
             startQuizTimer();
@@ -2434,6 +2583,7 @@ html_content = r'''<!DOCTYPE html>
         window.addEventListener('DOMContentLoaded', () => {
             setMatrixSize(2);
             renderSolverInputs(2);
+            generateNewQuizSession();
             loadQuestion();
             renderMath();
         });
@@ -2442,31 +2592,13 @@ html_content = r'''<!DOCTYPE html>
 </html>
 '''
 
-# 1. Write app_algebra_lineal.html
+# Rebuild both files
 target_path1 = r'c:\Users\Merlyn\Desktop\App Algebra lineal\app_algebra_lineal.html'
 with open(target_path1, 'w', encoding='utf-8') as f:
     f.write(html_content)
 
-# 2. Write index.html for Netlify root publishing
 target_path2 = r'c:\Users\Merlyn\Desktop\App Algebra lineal\index.html'
 with open(target_path2, 'w', encoding='utf-8') as f:
     f.write(html_content)
 
-# 3. Write _redirects for Netlify SPA routing
-redirects_path = r'c:\Users\Merlyn\Desktop\App Algebra lineal\_redirects'
-with open(redirects_path, 'w', encoding='utf-8') as f:
-    f.write('/*    /index.html   200\n')
-
-# 4. Write netlify.toml
-toml_path = r'c:\Users\Merlyn\Desktop\App Algebra lineal\netlify.toml'
-with open(toml_path, 'w', encoding='utf-8') as f:
-    f.write('''[build]
-  publish = "."
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-''')
-
-print("Successfully generated all files for Netlify!")
+print("Expanded question bank & dynamic randomization engine successfully built!")
