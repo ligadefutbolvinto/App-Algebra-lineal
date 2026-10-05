@@ -1,0 +1,2472 @@
+import sys
+import os
+import shutil
+
+html_content = r'''<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ÁLGEBRA LINEAL - Aplicación Educativa Universitaria</title>
+
+    <!-- KaTeX CDN for mathematical formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-dark: #0f172a;
+            --primary: #1e3a8a;
+            --primary-mid: #2563eb;
+            --primary-light: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-teal: #0d9488;
+            --accent-gold: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border: #cbd5e1;
+            --border-light: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER & NAVBAR */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            color: white;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 800;
+            font-size: 1.35rem;
+            letter-spacing: -0.5px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .brand-logo i {
+            color: var(--accent-cyan);
+            font-size: 1.6rem;
+        }
+
+        .brand-subtitle {
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0.85;
+            display: block;
+            letter-spacing: 0px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            list-style: none;
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+
+        .nav-tab-btn {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 0.6rem 1.1rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .nav-tab-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .nav-tab-btn.active {
+            background: var(--primary-mid);
+            color: white;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
+        }
+
+        /* MAIN CONTAINER */
+        .main-content {
+            max-width: 1300px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            flex: 1;
+            width: 100%;
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* HERO / PORTADA */
+        .hero-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            border-radius: var(--radius-lg);
+            padding: 3.5rem 2.5rem;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            padding: 0.4rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 1.25rem;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #ffffff, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .hero-slogan {
+            display: inline-flex;
+            gap: 1.5rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--accent-cyan);
+            margin-bottom: 2rem;
+            background: rgba(255,255,255,0.05);
+            padding: 0.6rem 1.5rem;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .hero-description {
+            max-width: 750px;
+            margin: 0 auto 2.5rem auto;
+            font-size: 1.1rem;
+            color: #cbd5e1;
+            line-height: 1.7;
+        }
+
+        .btn-hero {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.5);
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .btn-hero:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.7);
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .hero-feature-card {
+            background: var(--bg-card);
+            padding: 1.75rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.25s ease;
+        }
+
+        .hero-feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
+        }
+
+        .hero-feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--radius-md);
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-mid);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero-feature-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .hero-feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* INFORMACION / MODULE LAYOUT */
+        .modules-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+        }
+
+        .module-sidebar {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            height: fit-content;
+            position: sticky;
+            top: 5.5rem;
+        }
+
+        .sidebar-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        .module-nav-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .module-nav-btn {
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .module-nav-btn:hover {
+            background: var(--bg-main);
+            color: var(--primary-mid);
+        }
+
+        .module-nav-btn.active {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-mid);
+            border-left: 4px solid var(--primary-mid);
+            font-weight: 700;
+        }
+
+        .module-content-area {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 2.5rem;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .module-section {
+            display: none;
+        }
+
+        .module-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .section-header {
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: 1rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.8rem;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            margin-top: 0.3rem;
+        }
+
+        /* MATH CARDS & BOXES */
+        .concept-card {
+            background: #f8fafc;
+            border: 1px solid var(--border-light);
+            border-left: 4px solid var(--primary-mid);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .concept-card h3 {
+            color: var(--primary-dark);
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .did-you-know-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #bae6fd;
+            border-left: 5px solid var(--accent-cyan);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 1.75rem 0;
+        }
+
+        .did-you-know-box h4 {
+            color: #0369a1;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .example-box {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .example-header {
+            background: #f1f5f9;
+            margin: -1.5rem -1.5rem 1.25rem -1.5rem;
+            padding: 0.75rem 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+            border-top-left-radius: var(--radius-md);
+            border-top-right-radius: var(--radius-md);
+            font-weight: 700;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .step-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .step-item {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            background: var(--primary-mid);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            margin-top: 0.2rem;
+        }
+
+        .math-display {
+            overflow-x: auto;
+            padding: 1rem 0;
+            text-align: center;
+            font-size: 1.25rem;
+        }
+
+        /* INTERACTIVE TOOLS STYLING (CALCULATOR & SOLVER & VECTORS) */
+        .tool-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-light);
+            padding: 2.5rem;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2rem;
+        }
+
+        .matrix-input-grid {
+            display: inline-grid;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: #f1f5f9;
+            border-radius: var(--radius-md);
+            border: 2px solid var(--border);
+            position: relative;
+        }
+
+        .matrix-input-grid::before, .matrix-input-grid::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            border: 2px solid var(--primary-mid);
+        }
+
+        .matrix-input-grid::before {
+            left: -4px;
+            border-right: none;
+            border-radius: 6px 0 0 6px;
+        }
+
+        .matrix-input-grid::after {
+            right: -4px;
+            border-left: none;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .matrix-cell-input {
+            width: 65px;
+            height: 45px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .matrix-cell-input:focus {
+            border-color: var(--primary-mid);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+            background: #ffffff;
+        }
+
+        .btn-action {
+            background: var(--primary-mid);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-action:hover {
+            background: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 0.6rem 1.2rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .matrix-output-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            min-height: 120px;
+        }
+
+        .step-row {
+            background: white;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .step-tag {
+            display: inline-block;
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-mid);
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+        }
+
+        /* EVALUATION / QUIZ STYLING */
+        .quiz-container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        .quiz-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+            padding: 2.5rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .quiz-progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .quiz-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-mid) 0%, var(--accent-cyan) 100%);
+            width: 10%;
+            transition: width 0.3s ease;
+        }
+
+        .quiz-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .timer-badge {
+            background: #f1f5f9;
+            padding: 0.4rem 0.9rem;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--primary-dark);
+        }
+
+        .question-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .option-card {
+            background: var(--bg-main);
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            font-weight: 500;
+            font-size: 1.1rem;
+            min-height: 65px;
+        }
+
+        .option-card:hover {
+            border-color: var(--primary-light);
+            background: #ffffff;
+            transform: translateX(4px);
+        }
+
+        .option-card.selected {
+            border-color: var(--primary-mid);
+            background: rgba(37, 99, 235, 0.05);
+            font-weight: 700;
+        }
+
+        .option-radio {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            font-weight: 800;
+            flex-shrink: 0;
+            color: var(--text-muted);
+            background: white;
+        }
+
+        .option-card.selected .option-radio {
+            border-color: var(--primary-mid);
+            background: var(--primary-mid);
+            color: white;
+        }
+
+        .option-content {
+            flex: 1;
+            overflow-x: auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .feedback-box {
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            display: none;
+            animation: fadeIn 0.3s ease;
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .feedback-box.correct {
+            display: block;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-left: 6px solid var(--success);
+            color: #065f46;
+        }
+
+        .feedback-box.incorrect {
+            display: block;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-left: 6px solid var(--danger);
+            color: #991b1b;
+        }
+
+        .feedback-title {
+            font-weight: 800;
+            font-size: 1.15rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* RESULTS SCREEN */
+        .results-card {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .score-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-mid) 0%, var(--accent-cyan) 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem auto;
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
+        }
+
+        .score-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .score-total {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .performance-badge {
+            display: inline-block;
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .badge-excellent { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .badge-good { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+        .badge-basic { background: #fef3c7; color: #92400e; border: 1px solid #fde047; }
+        .badge-needs-work { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .stat-box {
+            background: #f8fafc;
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-light);
+        }
+
+        .stat-val {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+        }
+
+        .stat-lbl {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* NETLIFY BANNER */
+        .netlify-banner {
+            background: linear-gradient(135deg, #0e7490 0%, #0369a1 100%);
+            color: white;
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .netlify-banner h4 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* VECTOR CANVAS */
+        #vectorCanvas {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            width: 100%;
+            height: 400px;
+        }
+
+        /* BIBLIOGRAPHY */
+        .biblio-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            list-style: none;
+        }
+
+        .biblio-item {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-light);
+            border-left: 4px solid var(--primary-mid);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .biblio-authors {
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .biblio-title {
+            font-style: italic;
+            color: var(--text-main);
+        }
+
+        /* FOOTER */
+        .app-footer {
+            background: var(--primary-dark);
+            color: #94a3b8;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 4rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .modules-layout {
+                grid-template-columns: 1fr;
+            }
+            .module-sidebar {
+                position: relative;
+                top: 0;
+            }
+            .hero-title {
+                font-size: 2.2rem;
+            }
+            .hero-slogan {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .netlify-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER / NAVBAR -->
+    <header class="app-header">
+        <div class="navbar-container">
+            <a href="#" class="brand-logo" onclick="switchTab('tab-portada')">
+                <i class="fa-solid fa-shapes"></i>
+                <div>
+                    ÁLGEBRA LINEAL
+                    <span class="brand-subtitle">Aplicación Educativa Universitaria</span>
+                </div>
+            </a>
+            <ul class="nav-tabs">
+                <li><button class="nav-tab-btn active" id="btn-tab-portada" onclick="switchTab('tab-portada')"><i class="fa-solid fa-house"></i> Inicio</button></li>
+                <li><button class="nav-tab-btn" id="btn-tab-teoria" onclick="switchTab('tab-teoria')"><i class="fa-solid fa-book-open"></i> Información</button></li>
+                <li><button class="nav-tab-btn" id="btn-tab-calculadora" onclick="switchTab('tab-calculadora')"><i class="fa-solid fa-calculator"></i> Calculadora</button></li>
+                <li><button class="nav-tab-btn" id="btn-tab-solver" onclick="switchTab('tab-solver')"><i class="fa-solid fa-list-check"></i> Solver SEL</button></li>
+                <li><button class="nav-tab-btn" id="btn-tab-vectores" onclick="switchTab('tab-vectores')"><i class="fa-solid fa-compass"></i> Vectores 2D</button></li>
+                <li><button class="nav-tab-btn" id="btn-tab-aplicaciones" onclick="switchTab('tab-aplicaciones')"><i class="fa-solid fa-globe"></i> Aplicaciones</button></li>
+                <li><button class="nav-tab-btn" id="btn-tab-evaluacion" onclick="switchTab('tab-evaluacion')"><i class="fa-solid fa-pen-to-square"></i> Evaluación</button></li>
+                <li><button class="nav-tab-btn" id="btn-tab-bibliografia" onclick="switchTab('tab-bibliografia')"><i class="fa-solid fa-bookmark"></i> Bibliografía</button></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="main-content">
+
+        <!-- 1. PESTAÑA PORTADA -->
+        <section id="tab-portada" class="tab-panel active">
+            <div class="hero-card">
+                <span class="hero-badge">Nivel Universitario • Ingeniería & Ciencias</span>
+                <h1 class="hero-title">📐 ÁLGEBRA LINEAL</h1>
+                <div class="hero-subtitle">Aplicación educativa universitaria interactiva</div>
+                <div class="hero-slogan">
+                    <span>Comprende</span> • <span>Calcula</span> • <span>Resuelve</span> • <span>Comprueba</span>
+                </div>
+                <p class="hero-description">
+                    > Aplicación interactiva para el aprendizaje y práctica de los conceptos fundamentales del Álgebra Lineal. 
+                    Diseñada para potenciar el razonamiento matemático, la resolución de problemas estructurados y la comprensión profunda de matrices, determinantes, sistemas de ecuaciones y vectores.
+                </p>
+                <button class="btn-hero" onclick="switchTab('tab-teoria')">
+                    🚀 COMENZAR <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <div class="hero-grid">
+                <div class="hero-feature-card">
+                    <div class="hero-feature-icon"><i class="fa-solid fa-table-cells"></i></div>
+                    <h3>Matrices y Operaciones</h3>
+                    <p>Fundamentos de álgebra matricial, operaciones paso a paso y propiedades clave con ejemplos formales.</p>
+                </div>
+                <div class="hero-feature-card">
+                    <div class="hero-feature-icon"><i class="fa-solid fa-square-root-variable"></i></div>
+                    <h3>Determinantes e Inversa</h3>
+                    <p>Cálculo de determinantes $2\times2$ y $3\times3$, Regla de Sarrus, adjunta y método de Gauss-Jordan.</p>
+                </div>
+                <div class="hero-feature-card">
+                    <div class="hero-feature-icon"><i class="fa-solid fa-diagram-project"></i></div>
+                    <h3>Sistemas de Ecuaciones</h3>
+                    <p>Métodos de sustitución, reducción, Gauss y Gauss-Jordan detallando explícitamente las operaciones elementales por fila.</p>
+                </div>
+                <div class="hero-feature-card">
+                    <div class="hero-feature-icon"><i class="fa-solid fa-calculator"></i></div>
+                    <h3>Calculadora Matricial</h3>
+                    <p>Herramienta interactiva para calcular sumas, productos, determinantes e inversas con resolución paso a paso.</p>
+                </div>
+                <div class="hero-feature-card">
+                    <div class="hero-feature-icon"><i class="fa-solid fa-pen-nib"></i></div>
+                    <h3>Evaluación Formativa</h3>
+                    <p>10 problemas de opción múltiple con retroalimentación matemática detallada y formateo de matrices en KaTeX.</p>
+                </div>
+                <div class="hero-feature-card">
+                    <div class="hero-feature-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                    <h3>Listo para Netlify</h3>
+                    <p>Optimizado con `index.html` para publicar y compartir instantáneamente en la web con compañeros de clase.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. PESTAÑA INFORMACIÓN / TEORÍA -->
+        <section id="tab-teoria" class="tab-panel">
+            <div class="modules-layout">
+                <!-- SIDEBAR MODULOS -->
+                <aside class="module-sidebar">
+                    <div class="sidebar-title">Módulos de Aprendizaje</div>
+                    <ul class="module-nav-list">
+                        <li><button class="module-nav-btn active" onclick="switchModule('mod-1')"><i class="fa-solid fa-border-all"></i> 1. Matrices</button></li>
+                        <li><button class="module-nav-btn" onclick="switchModule('mod-2')"><i class="fa-solid fa-calculator"></i> 2. Operaciones</button></li>
+                        <li><button class="module-nav-btn" onclick="switchModule('mod-3')"><i class="fa-solid fa-hashtag"></i> 3. Determinantes</button></li>
+                        <li><button class="module-nav-btn" onclick="switchModule('mod-4')"><i class="fa-solid fa-equals"></i> 4. Sistemas (SEL)</button></li>
+                        <li><button class="module-nav-btn" onclick="switchModule('mod-5')"><i class="fa-solid fa-list-ol"></i> 5. Métodos Resolución</button></li>
+                        <li><button class="module-nav-btn" onclick="switchModule('mod-6')"><i class="fa-solid fa-rotate"></i> 6. Matriz Inversa</button></li>
+                        <li><button class="module-nav-btn" onclick="switchModule('mod-7')"><i class="fa-solid fa-location-arrow"></i> 7. Vectores $\mathbb{R}^2/\mathbb{R}^3$</button></li>
+                    </ul>
+                </aside>
+
+                <!-- MODULE CONTENT DISPLAY -->
+                <div class="module-content-area">
+
+                    <!-- MODULO 1 -->
+                    <article id="mod-1" class="module-section active">
+                        <div class="section-header">
+                            <h2><i class="fa-solid fa-border-all"></i> MÓDULO 1 – MATRICES</h2>
+                            <p>Conceptos fundamentales, dimensión, orden y clasificación de matrices en el álgebra lineal.</p>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>Concepto de Matriz</h3>
+                            <p>Una <strong>matriz</strong> es un arreglo rectangular de números reales o complejos dispuestos en filas (horizontales) y columnas (verticales). Se denotan habitualmente con letras mayúsculas ($A, B, C$) y sus elementos con letras minúsculas con subíndices ($a_{ij}$).</p>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>Orden o Dimensión de una Matriz</h3>
+                            <p>El <strong>orden de una matriz</strong> viene dado por el número de filas ($m$) y el número de columnas ($n$), representándose como $m \times n$ (se lee "$m$ por $n$").</p>
+                            <div class="math-display">
+                                $$A = \begin{pmatrix} a_{11} & a_{12} & \dots & a_{1n} \\ a_{21} & a_{22} & \dots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots \\ a_{m1} & a_{m2} & \dots & a_{mn} \end{pmatrix}_{m \times n}$$
+                            </div>
+                            <p>Donde $a_{ij}$ representa la entrada localizada en la <strong>fila $i$</strong> y en la <strong>columna $j$</strong>.</p>
+                        </div>
+
+                        <div class="example-box">
+                            <div class="example-header"><i class="fa-solid fa-lightbulb"></i> Ejemplo de Identificación de Orden y Elementos</div>
+                            <p>Dada la siguiente matriz $A$:</p>
+                            <div class="math-display">
+                                $$A = \begin{pmatrix} 2 & 1 & 3 \\ 0 & 4 & 5 \end{pmatrix}$$
+                            </div>
+                            <ul class="step-list">
+                                <li class="step-item">
+                                    <span class="step-number">1</span>
+                                    <div><strong>Filas ($m$):</strong> La matriz posee 2 filas horizontales ($F_1 = (2, 1, 3)$ y $F_2 = (0, 4, 5)$).</div>
+                                </li>
+                                <li class="step-item">
+                                    <span class="step-number">2</span>
+                                    <div><strong>Columnas ($n$):</strong> La matriz posee 3 columnas verticales ($C_1 = \begin{pmatrix} 2 \\ 0 \end{pmatrix}$, $C_2 = \begin{pmatrix} 1 \\ 4 \end{pmatrix}$, $C_3 = \begin{pmatrix} 3 \\ 5 \end{pmatrix}$).</div>
+                                </li>
+                                <li class="step-item">
+                                    <span class="step-number">3</span>
+                                    <div><strong>Orden final:</strong> Por lo tanto, el orden de la matriz $A$ es $2 \times 3$.</div>
+                                </li>
+                                <li class="step-item">
+                                    <span class="step-number">4</span>
+                                    <div><strong>Elementos específicos:</strong> $a_{11} = 2$, $a_{12} = 1$, $a_{13} = 3$, $a_{21} = 0$, $a_{22} = 4$, $a_{23} = 5$.</div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <h3 style="margin: 2rem 0 1rem 0; color: var(--primary-dark);">Clasificación de Matrices</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem;">
+                            <div class="concept-card" style="border-left-color: var(--accent-cyan);">
+                                <h4>Matriz Rectangular</h4>
+                                <p>Tiene distinto número de filas que de columnas ($m \neq n$).</p>
+                                <div class="math-display">$$\begin{pmatrix} 1 & 4 \\ 2 & 5 \\ 3 & 6 \end{pmatrix}_{3 \times 2}$$</div>
+                            </div>
+                            <div class="concept-card" style="border-left-color: var(--primary-mid);">
+                                <h4>Matriz Cuadrada</h4>
+                                <p>Tiene el mismo número de filas que de columnas ($m = n$). Se dice que es de orden $n$.</p>
+                                <div class="math-display">$$\begin{pmatrix} 3 & 7 \\ -1 & 4 \end{pmatrix}_{2 \times 2}$$</div>
+                            </div>
+                            <div class="concept-card" style="border-left-color: var(--success);">
+                                <h4>Matriz Identidad ($I_n$)</h4>
+                                <p>Matriz cuadrada donde los elementos de la diagonal principal son $1$ y los demás $0$.</p>
+                                <div class="math-display">$$I_3 = \begin{pmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{pmatrix}$$</div>
+                            </div>
+                            <div class="concept-card" style="border-left-color: var(--danger);">
+                                <h4>Matriz Nula ($O$)</h4>
+                                <p>Todos sus elementos son iguales a cero.</p>
+                                <div class="math-display">$$O_{2 \times 3} = \begin{pmatrix} 0 & 0 & 0 \\ 0 & 0 & 0 \end{pmatrix}$$</div>
+                            </div>
+                            <div class="concept-card" style="border-left-color: var(--accent-gold);">
+                                <h4>Matriz Diagonal</h4>
+                                <p>Matriz cuadrada donde todos los elementos fuera de la diagonal principal son cero.</p>
+                                <div class="math-display">$$\begin{pmatrix} 5 & 0 & 0 \\ 0 & -2 & 0 \\ 0 & 0 & 9 \end{pmatrix}$$</div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- MODULO 2 -->
+                    <article id="mod-2" class="module-section">
+                        <div class="section-header">
+                            <h2><i class="fa-solid fa-calculator"></i> MÓDULO 2 – OPERACIONES CON MATRICES</h2>
+                            <p>Suma, resta, multiplicación por escalar, producto matricial y transposición con ejemplos detallados.</p>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>1. Suma y Resta de Matrices</h3>
+                            <p>Para sumar o restar dos matrices, estas <strong>deben tener el mismo orden ($m \times n$)</strong>. La operación se realiza sumando o restando los elementos correspondientes posición por posición:</p>
+                            <div class="math-display">$$(A \pm B)_{ij} = a_{ij} \pm b_{ij}$$</div>
+                        </div>
+
+                        <div class="example-box">
+                            <div class="example-header"><i class="fa-solid fa-list-check"></i> Ejemplo Paso a Paso: Suma y Resta</div>
+                            <p>Dadas $A = \begin{pmatrix} 3 & 1 \\ 4 & -2 \end{pmatrix}$ y $B = \begin{pmatrix} 1 & 5 \\ -1 & 3 \end{pmatrix}$:</p>
+                            <div class="math-display">
+                                $$A + B = \begin{pmatrix} 3+1 & 1+5 \\ 4+(-1) & -2+3 \end{pmatrix} = \begin{pmatrix} 4 & 6 \\ 3 & 1 \end{pmatrix}$$
+                            </div>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>2. Multiplicación por un Escalar</h3>
+                            <p>Para multiplicar una matriz $A$ por un número real $k$ (escalar), se multiplica cada entrada de la matriz por dicho escalar:</p>
+                            <div class="math-display">$$(k \cdot A)_{ij} = k \cdot a_{ij}$$</div>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>3. Multiplicación de Matrices</h3>
+                            <p>El producto $A \cdot B$ sólo es posible si el <strong>número de columnas de $A$ es igual al número de filas de $B$</strong> ($A_{m \times n} \cdot B_{n \times p} = C_{m \times p}$).</p>
+                            <p>Cada elemento $c_{ij}$ de la matriz resultante se obtiene multiplicando la fila $i$ de $A$ por la columna $j$ de $B$ (producto escalar de vectores):</p>
+                            <div class="math-display">$$c_{ij} = \sum_{k=1}^{n} a_{ik} \cdot b_{kj} = a_{i1}b_{1j} + a_{i2}b_{2j} + \dots + a_{in}b_{nj}$$</div>
+                        </div>
+
+                        <div class="example-box">
+                            <div class="example-header"><i class="fa-solid fa-gears"></i> Ejemplo Desarrollado: Multiplicación de Matrices</div>
+                            <p>Calcular $A \cdot B$ para $A = \begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}_{2 \times 2}$ y $B = \begin{pmatrix} 5 & 6 \\ 7 & 8 \end{pmatrix}_{2 \times 2}$:</p>
+                            <div class="math-display">
+                                $$A \cdot B = \begin{pmatrix} (1)(5)+(2)(7) & (1)(6)+(2)(8) \\ (3)(5)+(4)(7) & (3)(6)+(4)(8) \end{pmatrix} = \begin{pmatrix} 5+14 & 6+16 \\ 15+28 & 18+32 \end{pmatrix} = \begin{pmatrix} 19 & 22 \\ 43 & 50 \end{pmatrix}$$
+                            </div>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>4. Transpuesta de una Matriz ($A^T$)</h3>
+                            <p>La matriz transpuesta de $A_{m \times n}$ es la matriz $A^T_{n \times m}$ que resulta de intercambiar sus filas por sus columnas ($(A^T)_{ij} = a_{ji}$).</p>
+                            <div class="math-display">
+                                $$A = \begin{pmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \end{pmatrix} \implies A^T = \begin{pmatrix} 1 & 4 \\ 2 & 5 \\ 3 & 6 \end{pmatrix}$$
+                            </div>
+                        </div>
+
+                        <div class="did-you-know-box">
+                            <h4><i class="fa-solid fa-lightbulb"></i> 💡 ¿Sabías que...?</h4>
+                            <ul style="margin-left: 1.2rem; line-height: 1.8;">
+                                <li><strong>No conmutatividad:</strong> En general, la multiplicación de matrices <strong>NO es conmutativa</strong> ($A \cdot B \neq B \cdot A$).</li>
+                                <li><strong>Transposición del producto:</strong> La transpuesta de un producto cumple la propiedad invertida: $(A \cdot B)^T = B^T \cdot A^T$.</li>
+                                <li><strong>Compatibilidad de dimensiones:</strong> No se pueden sumar matrices de dimensiones distintas (ej. una $2\times2$ con una $2\times3$).</li>
+                            </ul>
+                        </div>
+                    </article>
+
+                    <!-- MODULO 3 -->
+                    <article id="mod-3" class="module-section">
+                        <div class="section-header">
+                            <h2><i class="fa-solid fa-hashtag"></i> MÓDULO 3 – DETERMINANTES</h2>
+                            <p>Cálculo de determinantes $2\times2$ y $3\times3$, Regla de Sarrus y propiedades fundamentales.</p>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>Concepto de Determinante</h3>
+                            <p>El <strong>determinante</strong> es un valor escalar único asociado a una matriz cuadrada $A$. Se denota por $\det(A)$ o $|A|$. El determinante indica si una matriz es invertible ($\det(A) \neq 0$) y mide la variación del factor de escala del área o volumen bajo la transformación lineal correspondiente.</p>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>Determinante de una Matriz $2 \times 2$</h3>
+                            <p>Dada la matriz $A = \begin{pmatrix} a & b \\ c & d \end{pmatrix}$, su determinante se obtiene restando el producto de la diagonal secundaria al producto de la diagonal principal:</p>
+                            <div class="math-display">
+                                $$|A| = \begin{vmatrix} a & b \\ c & d \end{vmatrix} = ad - bc$$
+                            </div>
+                        </div>
+
+                        <div class="example-box">
+                            <div class="example-header"><i class="fa-solid fa-calculator"></i> Ejemplo Desarrollado $2 \times 2$</div>
+                            <p>Calcular el determinante de $A = \begin{pmatrix} 4 & 3 \\ 2 & 5 \end{pmatrix}$:</p>
+                            <div class="math-display">
+                                $$|A| = (4)(5) - (3)(2) = 20 - 6 = 14$$
+                            </div>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>Determinante $3 \times 3$ y Regla de Sarrus</h3>
+                            <p>Para una matriz $3 \times 3$, la <strong>Regla de Sarrus</strong> consiste en sumar los productos de las tres diagonales principales y restar los productos de las tres diagonales secundarias (escribiendo a la derecha las dos primeras columnas):</p>
+                            <div class="math-display">
+                                $$A = \begin{pmatrix} a_{11} & a_{12} & a_{13} \\ a_{21} & a_{22} & a_{23} \\ a_{31} & a_{32} & a_{33} \end{pmatrix}$$
+                            </div>
+                            <div class="math-display">
+                                $$|A| = (a_{11}a_{22}a_{33} + a_{12}a_{23}a_{31} + a_{13}a_{21}a_{32}) - (a_{13}a_{22}a_{31} + a_{11}a_{23}a_{32} + a_{12}a_{21}a_{33})$$
+                            </div>
+                        </div>
+
+                        <div class="example-box">
+                            <div class="example-header"><i class="fa-solid fa-square-root-variable"></i> Ejemplo Desarrollado $3 \times 3$ por Sarrus</div>
+                            <p>Calcular $|A|$ para $A = \begin{pmatrix} 1 & 2 & 3 \\ 0 & 1 & 4 \\ 5 & 6 & 0 \end{pmatrix}$:</p>
+                            <ul class="step-list">
+                                <li class="step-item">
+                                    <span class="step-number">1</span>
+                                    <div><strong>Diagonales principales (+):</strong><br>
+                                    $(1 \cdot 1 \cdot 0) + (2 \cdot 4 \cdot 5) + (3 \cdot 0 \cdot 6) = 0 + 40 + 0 = 40$</div>
+                                </li>
+                                <li class="step-item">
+                                    <span class="step-number">2</span>
+                                    <div><strong>Diagonales secundarias (-):</strong><br>
+                                    $(3 \cdot 1 \cdot 5) + (1 \cdot 4 \cdot 6) + (2 \cdot 0 \cdot 0) = 15 + 24 + 0 = 39$</div>
+                                </li>
+                                <li class="step-item">
+                                    <span class="step-number">3</span>
+                                    <div><strong>Resultado final:</strong><br>
+                                    $|A| = 40 - 39 = 1$</div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="did-you-know-box">
+                            <h4><i class="fa-solid fa-star"></i> Propiedades Fundamentales de los Determinantes</h4>
+                            <ul style="margin-left: 1.2rem; line-height: 1.8;">
+                                <li>$\det(I) = 1$ para toda matriz identidad $I$.</li>
+                                <li>$\det(A^T) = \det(A)$. El determinante no cambia al transponer.</li>
+                                <li>$\det(A \cdot B) = \det(A) \cdot \det(B)$.</li>
+                                <li>Si una matriz tiene una fila o columna completa de ceros, su determinante es $0$.</li>
+                                <li>Intercambiar dos filas (o columnas) cambia el signo del determinante.</li>
+                                <li>Si $A$ tiene dos filas identicas, $\det(A) = 0$.</li>
+                            </ul>
+                        </div>
+                    </article>
+
+                    <!-- MODULO 4 -->
+                    <article id="mod-4" class="module-section">
+                        <div class="section-header">
+                            <h2><i class="fa-solid fa-equals"></i> MÓDULO 4 – SISTEMAS DE ECUACIONES LINEALES</h2>
+                            <p>Representación matricial, matriz aumentada y clasificación según la existencia y número de soluciones.</p>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>Concepto de Sistema de Ecuaciones Lineales (SEL)</h3>
+                            <p>Un sistema de $m$ ecuaciones lineales con $n$ incógnitas se expresa algebraicamente como:</p>
+                            <div class="math-display">
+                                $$\begin{cases} a_{11}x_1 + a_{12}x_2 + \dots + a_{1n}x_n = b_1 \\ a_{21}x_1 + a_{22}x_2 + \dots + a_{2n}x_n = b_2 \\ \vdots \\ a_{m1}x_1 + a_{m2}x_2 + \dots + a_{mn}x_n = b_m \end{cases}$$
+                            </div>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>Representación Matricial y Matriz Aumentada</h3>
+                            <p>Cualquier SEL puede escribirse en forma de ecuación matricial $A \vec{x} = \vec{b}$:</p>
+                            <div class="math-display">
+                                $$\begin{pmatrix} a_{11} & a_{12} & \dots & a_{1n} \\ a_{21} & a_{22} & \dots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots \\ a_{m1} & a_{m2} & \dots & a_{mn} \end{pmatrix} \begin{pmatrix} x_1 \\ x_2 \\ \vdots \\ x_n \end{pmatrix} = \begin{pmatrix} b_1 \\ b_2 \\ \vdots \\ b_m \end{pmatrix}$$
+                            </div>
+                            <p>La <strong>matriz aumentada</strong> $[A|\vec{b}]$ combina los coeficientes de las variables y los términos independientes en una sola estructura:</p>
+                            <div class="math-display">
+                                $$[A|\vec{b}] = \left[\begin{array}{cccc|c} a_{11} & a_{12} & \dots & a_{1n} & b_1 \\ a_{21} & a_{22} & \dots & a_{2n} & b_2 \\ \vdots & \vdots & \ddots & \vdots & \vdots \\ a_{m1} & a_{m2} & \dots & a_{mn} & b_m \end{array}\right]$$
+                            </div>
+                        </div>
+
+                        <h3 style="margin: 2rem 0 1rem 0; color: var(--primary-dark);">Clasificación de Sistemas de Ecuaciones</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem;">
+                            <div class="concept-card" style="border-left-color: var(--success);">
+                                <h4>Sistema Compatible Determinado (SCD)</h4>
+                                <p>Tiene <strong>solución única</strong>. Gráficamente en $\mathbb{R}^2$, las rectas se cortan en un único punto.</p>
+                                <p style="font-weight: 700; color: var(--success); margin-top: 0.5rem;">$\text{rango}(A) = \text{rango}(A|b) = n$</p>
+                            </div>
+                            <div class="concept-card" style="border-left-color: var(--accent-cyan);">
+                                <h4>Sistema Compatible Indeterminado (SCI)</h4>
+                                <p>Tiene <strong>infinitas soluciones</strong>. En $\mathbb{R}^2$, representa rectas coincidentes (la misma recta).</p>
+                                <p style="font-weight: 700; color: var(--accent-cyan); margin-top: 0.5rem;">$\text{rango}(A) = \text{rango}(A|b) < n$</p>
+                            </div>
+                            <div class="concept-card" style="border-left-color: var(--danger);">
+                                <h4>Sistema Incompatible (SI)</h4>
+                                <p><strong>No tiene solución</strong>. En $\mathbb{R}^2$, representa rectas paralelas no coincidentes que jamás se cruzan.</p>
+                                <p style="font-weight: 700; color: var(--danger); margin-top: 0.5rem;">$\text{rango}(A) \neq \text{rango}(A|b)$</p>
+                            </div>
+                        </div>
+
+                        <div class="example-box">
+                            <div class="example-header"><i class="fa-solid fa-shapes"></i> Ejemplo de Sistema $2 \times 2$</div>
+                            <p>Dado el sistema:</p>
+                            <div class="math-display">
+                                $$\begin{cases} 2x + y = 5 \\ x - y = 1 \end{cases}$$
+                            </div>
+                            <p>Su matriz aumentada es $\left[\begin{array}{cc|c} 2 & 1 & 5 \\ 1 & -1 & 1 \end{array}\right]$. Sumando ambas ecuaciones se obtiene $3x = 6 \implies x = 2$. Sustituyendo, $y = 1$. Es un <strong>SCD</strong> con solución única en el punto $(2, 1)$.</p>
+                        </div>
+                    </article>
+
+                    <!-- MODULO 5 -->
+                    <article id="mod-5" class="module-section">
+                        <div class="section-header">
+                            <h2><i class="fa-solid fa-list-ol"></i> MÓDULO 5 – MÉTODOS DE RESOLUCIÓN</h2>
+                            <p>Sustitución, Eliminación, Eliminación Gaussiana y Método de Gauss-Jordan con operaciones elementales explicadas.</p>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>🔹 1. Método de Sustitución</h3>
+                            <p><strong>Procedimiento:</strong> Se despeja una variable en una de las ecuaciones y se sustituye la expresión resultante en la otra ecuación.</p>
+                            <div class="example-box">
+                                <div class="example-header">Ejemplo: Sustitución</div>
+                                <div class="math-display">$$\begin{cases} 2x + y = 5 \implies y = 5 - 2x \quad \text{(Eq. 1)} \\ x - y = 1 \quad \text{(Eq. 2)} \end{cases}$$</div>
+                                <p>Sustituyendo Eq. 1 en Eq. 2: $x - (5 - 2x) = 1 \implies 3x - 5 = 1 \implies 3x = 6 \implies \mathbf{x = 2}$.</p>
+                                <p>Luego $y = 5 - 2(2) \implies \mathbf{y = 1}$. Solución: $(2, 1)$.</p>
+                            </div>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>🔹 2. Método de Eliminación (Reducción)</h3>
+                            <p><strong>Procedimiento:</strong> Se multiplican las ecuaciones por constantes convenientes de modo que al sumarlas se cancele una de las variables.</p>
+                            <div class="example-box">
+                                <div class="example-header">Ejemplo: Eliminación</div>
+                                <div class="math-display">$$\begin{cases} 2x + y = 5 \\ x - y = 1 \end{cases}$$</div>
+                                <p>Sumando miembro a miembro ambas ecuaciones: $(2x + x) + (y - y) = 5 + 1 \implies 3x = 6 \implies \mathbf{x = 2}$. Sustituyendo en la primera: $2(2) + y = 5 \implies \mathbf{y = 1}$.</p>
+                            </div>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>🔹 3. Método de Gauss (Eliminación Gaussiana)</h3>
+                            <p><strong>Procedimiento:</strong> Aplica operaciones elementales sobre las filas de la matriz aumentada para llevarla a una <strong>forma escalonada por filas</strong> (ceros debajo de la diagonal principal). Luego se resuelve mediante sustitución hacia atrás.</p>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>🔹 4. Método de Gauss-Jordan</h3>
+                            <p><strong>Procedimiento:</strong> Continúa el proceso de Gauss hasta obtener la <strong>Forma Escalonada Reducida por Filas (RREF)</strong>, donde la matriz de coeficientes se transforma en la matriz identidad $[I | \vec{x}]$. La solución se lee directamente en la columna final.</p>
+                            <div class="did-you-know-box">
+                                <h4>📌 Las 3 Operaciones Elementales por Fila</h4>
+                                <ol style="margin-left: 1.2rem; line-height: 1.8;">
+                                    <li><strong>Intercambio de filas:</strong> $F_i \leftrightarrow F_j$ (cambiar la posición de dos filas).</li>
+                                    <li><strong>Multiplicación por un escalar no nulo:</strong> $F_i \rightarrow k \cdot F_i$ ($k \neq 0$).</li>
+                                    <li><strong>Suma de un múltiplo de una fila a otra:</strong> $F_i \rightarrow F_i + k \cdot F_j$ (utilizada para eliminar variables y hacer ceros arriba/abajo de los pivotes).</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div class="example-box">
+                            <div class="example-header"><i class="fa-solid fa-code-compare"></i> Ejemplo Gauss-Jordan Paso a Paso</div>
+                            <p>Resolver el sistema: $\begin{cases} 2x + y = 5 \\ 4x - y = 1 \end{cases}$</p>
+                            <ul class="step-list">
+                                <li class="step-item">
+                                    <span class="step-number">1</span>
+                                    <div><strong>Matriz Aumentada Inicial:</strong>
+                                    $$\left[\begin{array}{cc|c} 2 & 1 & 5 \\ 4 & -1 & 1 \end{array}\right]$$</div>
+                                </li>
+                                <li class="step-item">
+                                    <span class="step-number">2</span>
+                                    <div><strong>Pivote 1 ($F_1 \rightarrow \frac{1}{2}F_1$):</strong> Dividir $F_1$ entre 2 para hacer el primer pivote igual a 1.
+                                    $$\left[\begin{array}{cc|c} 1 & 0.5 & 2.5 \\ 4 & -1 & 1 \end{array}\right]$$</div>
+                                </li>
+                                <li class="step-item">
+                                    <span class="step-number">3</span>
+                                    <div><strong>Eliminar en columna 1 ($F_2 \rightarrow F_2 - 4F_1$):</strong>
+                                    $$F_2 = (4 - 4(1), -1 - 4(0.5), 1 - 4(2.5)) = (0, -3, -9)$$
+                                    $$\left[\begin{array}{cc|c} 1 & 0.5 & 2.5 \\ 0 & -3 & -9 \end{array}\right]$$</div>
+                                </li>
+                                <li class="step-item">
+                                    <span class="step-number">4</span>
+                                    <div><strong>Pivote 2 ($F_2 \rightarrow -\frac{1}{3}F_2$):</strong>
+                                    $$\left[\begin{array}{cc|c} 1 & 0.5 & 2.5 \\ 0 & 1 & 3 \end{array}\right]$$</div>
+                                </li>
+                                <li class="step-item">
+                                    <span class="step-number">5</span>
+                                    <div><strong>Eliminar arriba de pivote 2 ($F_1 \rightarrow F_1 - 0.5F_2$):</strong>
+                                    $$F_1 = (1-0, 0.5-0.5(1), 2.5-0.5(3)) = (1, 0, 1)$$
+                                    $$\left[\begin{array}{cc|c} 1 & 0 & 1 \\ 0 & 1 & 3 \end{array}\right]$$</div>
+                                </li>
+                            </ul>
+                            <p style="margin-top: 1rem; font-weight: 700; color: var(--success); text-align: center;">Resultado final: $x = 1, y = 3$. Solución única.</p>
+                        </div>
+                    </article>
+
+                    <!-- MODULO 6 -->
+                    <article id="mod-6" class="module-section">
+                        <div class="section-header">
+                            <h2><i class="fa-solid fa-rotate"></i> MÓDULO 6 – INVERSA DE UNA MATRIZ</h2>
+                            <p>Condición de invertibilidad, método por determinantes (adjunta) y método de Gauss-Jordan.</p>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>Concepto de Matriz Inversa</h3>
+                            <p>Sea $A$ una matriz cuadrada de orden $n$. Si existe una matriz $A^{-1}$ tal que:</p>
+                            <div class="math-display">$$A \cdot A^{-1} = A^{-1} \cdot A = I_n$$</div>
+                            <p>Entonces se dice que $A$ es <strong>invertible</strong> o <strong>no singular</strong>.</p>
+                            <p style="color: var(--danger); font-weight: 700; margin-top: 0.5rem;">⚠️ Condición de Existencia: La matriz $A$ posee inversa si y sólo si su determinante es distinto de cero ($\det(A) \neq 0$). Si $\det(A) = 0$, la matriz es singular (no invertible).</p>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>Método 1: Mediante Determinante y Adjunta</h3>
+                            <p>La fórmula de la matriz inversa utilizando la matriz adjunta es:</p>
+                            <div class="math-display">$$A^{-1} = \frac{1}{|A|} \cdot \text{adj}(A)$$</div>
+                            <p>Para una matriz $2 \times 2$ genérica $A = \begin{pmatrix} a & b \\ c & d \end{pmatrix}$:</p>
+                            <div class="math-display">$$A^{-1} = \frac{1}{ad-bc} \begin{pmatrix} d & -b \\ -c & a \end{pmatrix}$$</div>
+                        </div>
+
+                        <div class="example-box">
+                            <div class="example-header"><i class="fa-solid fa-calculator"></i> Ejemplo Inversa $2 \times 2$</div>
+                            <p>Hallar la inversa de $A = \begin{pmatrix} 2 & 1 \\ 5 & 3 \end{pmatrix}$:</p>
+                            <ul class="step-list">
+                                <li class="step-item">
+                                    <span class="step-number">1</span>
+                                    <div><strong>Calcular el determinante:</strong> $|A| = (2)(3) - (1)(5) = 6 - 5 = 1 \neq 0$. Como es distinto de cero, $A^{-1}$ existe.</div>
+                                </li>
+                                <li class="step-item">
+                                    <span class="step-number">2</span>
+                                    <div><strong>Aplicar la fórmula $2 \times 2$:</strong> Intercambiar la diagonal principal y cambiar signo a la secundaria:
+                                    $$A^{-1} = \frac{1}{1} \begin{pmatrix} 3 & -1 \\ -5 & 2 \end{pmatrix} = \begin{pmatrix} 3 & -1 \\ -5 & 2 \end{pmatrix}$$</div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>Método 2: Mediante Gauss-Jordan</h3>
+                            <p>Se construye la matriz dada junto a la matriz identidad $[A | I]$. Mediante operaciones elementales por fila se transforma el bloque izquierdo en la identidad $[I | A^{-1}]$, obteniéndose la inversa en el bloque derecho.</p>
+                        </div>
+                    </article>
+
+                    <!-- MODULO 7 -->
+                    <article id="mod-7" class="module-section">
+                        <div class="section-header">
+                            <h2><i class="fa-solid fa-location-arrow"></i> MÓDULO 7 – VECTORES EN $\mathbb{R}^2$ Y $\mathbb{R}^3$</h2>
+                            <p>Componentes, magnitud (módulo), producto escalar, vectores unitarios y operaciones fundamentales.</p>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>Concepto de Vector</h3>
+                            <p>Un <strong>vector</strong> es un objeto matemático caracterizado por su <strong>magnitud (módulo)</strong>, <strong>dirección</strong> y <strong>sentido</strong>. Se representa mediante una flecha orientada en el plano $\mathbb{R}^2$ o espacio $\mathbb{R}^3$.</p>
+                            <div class="math-display">$$\vec{u} = (u_1, u_2) \in \mathbb{R}^2 \quad \text{o} \quad \vec{v} = (v_1, v_2, v_3) \in \mathbb{R}^3$$</div>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>Módulo o Magnitud de un Vector ($||\vec{u}||$)</h3>
+                            <p>Representa la longitud del segmento orientado. Se calcula aplicando el Teorema de Pitágoras:</p>
+                            <div class="math-display">$$||\vec{u}|| = \sqrt{u_1^2 + u_2^2 + \dots + u_n^2}$$</div>
+                        </div>
+
+                        <div class="example-box">
+                            <div class="example-header"><i class="fa-solid fa-ruler-combined"></i> Ejemplo de Cálculo de Módulo</div>
+                            <p>Dado el vector $\vec{u} = (3, 4)$ en $\mathbb{R}^2$:</p>
+                            <div class="math-display">
+                                $$||\vec{u}|| = \sqrt{3^2 + 4^2} = \sqrt{9 + 16} = \sqrt{25} = 5$$
+                            </div>
+                        </div>
+
+                        <div class="concept-card">
+                            <h3>Operaciones Fundamentales con Vectores</h3>
+                            <ul style="margin-left: 1.2rem; line-height: 1.8;">
+                                <li><strong>Suma:</strong> $\vec{u} + \vec{v} = (u_1+v_1, u_2+v_2)$ (regla del paralelogramo).</li>
+                                <li><strong>Producto por Escalar:</strong> $k \cdot \vec{u} = (k u_1, k u_2)$ (modifica la magnitud y/o sentido).</li>
+                                <li><strong>Producto Escalar (Punto):</strong> $\vec{u} \cdot \vec{v} = u_1 v_1 + u_2 v_2 = ||\vec{u}|| ||\vec{v}|| \cos \theta$.</li>
+                                <li><strong>Vector Unitario:</strong> $\hat{u} = \frac{\vec{u}}{||\vec{u}||}$ (vector de magnitud 1 en la misma dirección).</li>
+                            </ul>
+                        </div>
+                    </article>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. PESTAÑA CALCULADORA MATRICIAL -->
+        <section id="tab-calculadora" class="tab-panel">
+            <div class="tool-card">
+                <h2><i class="fa-solid fa-calculator"></i> 🧮 CALCULADORA DE MATRICES INTERACTIVA</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Introduce las matrices $A$ y $B$ para calcular operaciones con desarrollo paso a paso.</p>
+
+                <!-- CONTROLES TAMAÑO -->
+                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem;">
+                    <label style="font-weight: 700;">Dimensión de las Matrices:</label>
+                    <button class="btn-secondary active" id="btn-size-2" onclick="setMatrixSize(2)">2 x 2</button>
+                    <button class="btn-secondary" id="btn-size-3" onclick="setMatrixSize(3)">3 x 3</button>
+                    <button class="btn-secondary" onclick="presetMatrices()"><i class="fa-solid fa-wand-magic-sparkles"></i> Cargar Valores Ejemplo</button>
+                </div>
+
+                <!-- CONTENEDOR ENTRADAS MATRICIALES -->
+                <div style="display: flex; flex-wrap: wrap; gap: 3rem; justify-content: center; margin-bottom: 2rem;">
+                    <!-- MATRIZ A -->
+                    <div style="text-align: center;">
+                        <h4 style="margin-bottom: 0.75rem; color: var(--primary-mid);">Matriz A</h4>
+                        <div id="grid-matrix-A" class="matrix-input-grid"></div>
+                    </div>
+
+                    <!-- MATRIZ B -->
+                    <div style="text-align: center;">
+                        <h4 style="margin-bottom: 0.75rem; color: var(--accent-cyan);">Matriz B</h4>
+                        <div id="grid-matrix-B" class="matrix-input-grid"></div>
+                    </div>
+                </div>
+
+                <!-- BOTONES DE OPERACIONES -->
+                <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-bottom: 1.5rem;">
+                    <button class="btn-action" onclick="calcOp('add')"><i class="fa-solid fa-plus"></i> $A + B$</button>
+                    <button class="btn-action" onclick="calcOp('sub')"><i class="fa-solid fa-minus"></i> $A - B$</button>
+                    <button class="btn-action" onclick="calcOp('mul')"><i class="fa-solid fa-xmark"></i> $A \times B$</button>
+                    <button class="btn-action" onclick="calcOp('detA')"><i class="fa-solid fa-hashtag"></i> $\det(A)$</button>
+                    <button class="btn-action" onclick="calcOp('detB')"><i class="fa-solid fa-hashtag"></i> $\det(B)$</button>
+                    <button class="btn-action" onclick="calcOp('transA')"><i class="fa-solid fa-turn-up"></i> $A^T$</button>
+                    <button class="btn-action" onclick="calcOp('invA')"><i class="fa-solid fa-rotate"></i> $A^{-1}$</button>
+                </div>
+
+                <!-- RESULTADO PASO A PASO -->
+                <div class="matrix-output-box" id="calc-output">
+                    <div style="text-align: center; color: var(--text-muted);">
+                        <i>Selecciona una operación arriba para ver la resolución paso a paso.</i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. PESTAÑA SOLVER GAUSS-JORDAN -->
+        <section id="tab-solver" class="tab-panel">
+            <div class="tool-card">
+                <h2><i class="fa-solid fa-list-check"></i> 🔢 SOLUCIONADOR DE SISTEMAS DE ECUACIONES (GAUSS-JORDAN)</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Resuelve sistemas $2\times2$ y $3\times3$ mostrando la evolución de la matriz aumentada paso a paso y la justificación de cada operación elemental.</p>
+
+                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem;">
+                    <label style="font-weight: 700;">Tamaño del Sistema:</label>
+                    <button class="btn-secondary active" id="btn-solver-size-2" onclick="setSolverSize(2)">2 Ecuaciones ($2\times2$)</button>
+                    <button class="btn-secondary" id="btn-solver-size-3" onclick="setSolverSize(3)">3 Ecuaciones ($3\times3$)</button>
+                    <button class="btn-secondary" onclick="presetSolverExample()"><i class="fa-solid fa-wand-magic-sparkles"></i> Ejemplo SCD</button>
+                </div>
+
+                <!-- CONTENEDOR ENTRADAS SEL -->
+                <div id="solver-input-container" style="background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 1.5rem;">
+                    <!-- Generado dinámicamente -->
+                </div>
+
+                <div style="text-align: center;">
+                    <button class="btn-action" style="padding: 0.9rem 2.5rem; font-size: 1.1rem;" onclick="solveGaussJordan()">
+                        🚀 RESOLVER POR GAUSS-JORDAN
+                    </button>
+                </div>
+
+                <div class="matrix-output-box" id="solver-output" style="margin-top: 2rem;">
+                    <div style="text-align: center; color: var(--text-muted);">
+                        <i>Ingresa los coeficientes y haz clic en "Resolver" para ver el procedimiento paso a paso.</i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. PESTAÑA VECTORES 2D INTERACTIVOS -->
+        <section id="tab-vectores" class="tab-panel">
+            <div class="tool-card">
+                <h2><i class="fa-solid fa-compass"></i> 🎯 VISUALIZADOR INTERACTIVO DE VECTORES EN $\mathbb{R}^2$</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Ajusta las componentes de los vectores $\vec{u}$ y $\vec{v}$ para visualizar en tiempo real su representación gráfica, suma, módulo y producto escalar.</p>
+
+                <div style="display: grid; grid-template-columns: 320px 1fr; gap: 2rem; align-items: start;">
+                    <!-- CONTROLES -->
+                    <div style="background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <h4 style="color: var(--primary-mid); margin-bottom: 1rem;"><i class="fa-solid fa-sliders"></i> Componentes de Vectores</h4>
+
+                        <!-- Vector U -->
+                        <div style="margin-bottom: 1.25rem;">
+                            <label style="font-weight: 700; color: #2563eb;">Vector $\vec{u} = (u_x, u_y)$</label>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 0.4rem;">
+                                <span>$u_x$:</span>
+                                <input type="number" id="ux-val" value="3" min="-9" max="9" style="width: 60px; padding: 0.3rem;" onchange="updateVectorCanvas()">
+                                <span>$u_y$:</span>
+                                <input type="number" id="uy-val" value="4" min="-9" max="9" style="width: 60px; padding: 0.3rem;" onchange="updateVectorCanvas()">
+                            </div>
+                        </div>
+
+                        <!-- Vector V -->
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="font-weight: 700; color: #059669;">Vector $\vec{v} = (v_x, v_y)$</label>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 0.4rem;">
+                                <span>$v_x$:</span>
+                                <input type="number" id="vx-val" value="5" min="-9" max="9" style="width: 60px; padding: 0.3rem;" onchange="updateVectorCanvas()">
+                                <span>$v_y$:</span>
+                                <input type="number" id="vy-val" value="-2" min="-9" max="9" style="width: 60px; padding: 0.3rem;" onchange="updateVectorCanvas()">
+                            </div>
+                        </div>
+
+                        <!-- RESULTADOS CALCULADOS -->
+                        <div style="background: white; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-light); font-size: 0.95rem;">
+                            <p><strong>Módulo $||\vec{u}||$:</strong> <span id="mod-u-res">5.00</span></p>
+                            <p><strong>Módulo $||\vec{v}||$:</strong> <span id="mod-v-res">5.39</span></p>
+                            <p><strong>Suma $\vec{u}+\vec{v}$:</strong> <span id="sum-uv-res">(8, 2)</span></p>
+                            <p><strong>Prod. Escalar $\vec{u} \cdot \vec{v}$:</strong> <span id="dot-uv-res">7</span></p>
+                            <p><strong>Ángulo $\theta$:</strong> <span id="angle-uv-res">74.9°</span></p>
+                        </div>
+                    </div>
+
+                    <!-- CANVAS -->
+                    <div>
+                        <canvas id="vectorCanvas" width="600" height="450"></canvas>
+                        <div style="display: flex; justify-content: center; gap: 1.5rem; margin-top: 0.75rem; font-size: 0.9rem; font-weight: 600;">
+                            <span style="color: #2563eb;">■ Vector $\vec{u}$</span>
+                            <span style="color: #059669;">■ Vector $\vec{v}$</span>
+                            <span style="color: #9333ea;">-- Suma $\vec{u}+\vec{v}$</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. PESTAÑA APLICACIONES -->
+        <section id="tab-aplicaciones" class="tab-panel">
+            <div class="tool-card">
+                <h2><i class="fa-solid fa-earth-americas"></i> 🌎 ÁLGEBRA LINEAL EN LA VIDA REAL</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Descubre el impacto y las aplicaciones fundamentales del álgebra lineal en las diferentes disciplinas profesionales.</p>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.75rem;">
+                    <!-- 1. INGENIERIA -->
+                    <div class="concept-card" style="border-left-color: var(--primary-mid);">
+                        <h3 style="color: var(--primary-dark);"><i class="fa-solid fa-helmet-safety"></i> 1. Ingeniería</h3>
+                        <p><strong>Análisis Estructural y Redes:</strong> En Ingeniería Civil y Mecánica, los sistemas de ecuaciones modelan el equilibrio de fuerzas en armaduras y puentes. En Ingeniería Eléctrica, la Ley de Kirchhoff de corrientes y voltajes se resuelve mediante sistemas matriciales de gran escala para determinar potenciales en mallas complejas.</p>
+                    </div>
+
+                    <!-- 2. ECONOMIA -->
+                    <div class="concept-card" style="border-left-color: var(--success);">
+                        <h3 style="color: #065f46;"><i class="fa-solid fa-chart-line"></i> 2. Economía y Administración</h3>
+                        <p><strong>Modelo Insumo-Producto de Leontief:</strong> Utiliza matrices de coeficientes técnicos para modelar la interdependencia entre distintos sectores industriales de un país. Permite predecir la producción requerida para satisfacer demandas finales específicas de la economía.</p>
+                    </div>
+
+                    <!-- 3. COMPUTACION E IA -->
+                    <div class="concept-card" style="border-left-color: var(--accent-cyan);">
+                        <h3 style="color: #0e7490;"><i class="fa-solid fa-brain"></i> 3. Computación e Inteligencia Artificial</h3>
+                        <p><strong>Gráficos 3D y Redes Neuronales:</strong> El renderizado de videojuegos y motores 3D realiza transformaciones lineales (rotación, traslación, escala) multiplicando vectores por matrices de transformación homogéneas. En IA y Deep Learning, el entrenamiento de modelos requiere operaciones matriciales masivas (producto de tensores).</p>
+                    </div>
+
+                    <!-- 4. FISICA -->
+                    <div class="concept-card" style="border-left-color: var(--accent-gold);">
+                        <h3 style="color: #b45309;"><i class="fa-solid fa-atom"></i> 4. Física</h3>
+                        <p><strong>Mecánica Cuántica y Relatividad:</strong> Los estados cuánticos de las partículas se representan mediante vectores en espacios de Hilbert Complejos y los observables mediante operadores matriciales hermíticos. Las Transformaciones de Lorentz en relatividad especial se estructuran mediante matrices de 4 dimensiones.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. PESTAÑA EVALUACIÓN -->
+        <section id="tab-evaluacion" class="tab-panel">
+            <div class="quiz-container">
+                <!-- NETLIFY BANNER EN EVALUACION -->
+                <div class="netlify-banner">
+                    <div>
+                        <h4><i class="fa-solid fa-paper-plane"></i> Compartir esta aplicación en Netlify</h4>
+                        <p style="font-size: 0.9rem; opacity: 0.95;">Esta aplicación incluye `index.html` para subirla gratis a Netlify en segundos y compartirla con tus compañeros.</p>
+                    </div>
+                    <a href="https://app.netlify.com/drop" target="_blank" class="btn-secondary" style="background: white; color: #0369a1; text-decoration: none;">
+                        <i class="fa-solid fa-upload"></i> Subir a Netlify Drop
+                    </a>
+                </div>
+
+                <!-- QUIZ CARD -->
+                <div class="quiz-card" id="quiz-main-card">
+                    <!-- PROGRESS & META -->
+                    <div class="quiz-progress-bar">
+                        <div class="quiz-progress-fill" id="quiz-progress"></div>
+                    </div>
+                    <div class="quiz-meta">
+                        <span>Pregunta <span id="q-curr">1</span> de 10</span>
+                        <div class="timer-badge"><i class="fa-regular fa-clock"></i> <span id="quiz-timer">00:00</span></div>
+                    </div>
+
+                    <!-- PREGUNTA -->
+                    <div class="question-title" id="q-text">Cargando pregunta...</div>
+
+                    <!-- OPCIONES A, B, C -->
+                    <div class="quiz-options" id="q-options"></div>
+
+                    <!-- RETROALIMENTACION -->
+                    <div class="feedback-box" id="feedback-box">
+                        <div class="feedback-title" id="feedback-title"></div>
+                        <div id="feedback-text"></div>
+                    </div>
+
+                    <!-- BOTONES ACCION QUIZ -->
+                    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                        <button class="btn-action" id="btn-submit-q" onclick="submitAnswer()"><i class="fa-solid fa-check"></i> Comprobar Respuesta</button>
+                        <button class="btn-action" id="btn-next-q" style="display: none;" onclick="nextQuestion()">Siguiente Pregunta <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- REPORT CARD FINAL (OCULTO AL INICIO) -->
+                <div class="quiz-card results-card" id="quiz-results-card" style="display: none;">
+                    <div class="score-circle">
+                        <span class="score-number" id="res-score">0/10</span>
+                        <span class="score-total" id="res-pct">0%</span>
+                    </div>
+
+                    <div class="performance-badge" id="res-badge">Nivel de Desempeño</div>
+
+                    <h2 style="color: var(--primary-dark); margin-bottom: 0.5rem;">🎯 RESULTADO DE LA EVALUACIÓN</h2>
+                    <p style="color: var(--text-muted);">Has completado la prueba de evaluación universitaria de Álgebra Lineal.</p>
+
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-val" style="color: var(--success);" id="res-correct">0</div>
+                            <div class="stat-lbl">Respuestas Correctas</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-val" style="color: var(--danger);" id="res-incorrect">0</div>
+                            <div class="stat-lbl">Respuestas Incorrectas</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-val" style="color: var(--primary-mid);" id="res-time">00:00</div>
+                            <div class="stat-lbl">Tiempo Empleado</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
+                        <button class="btn-action" onclick="restartQuiz()"><i class="fa-solid fa-rotate-right"></i> 🔄 INTENTAR NUEVAMENTE</button>
+                        <button class="btn-secondary" onclick="switchTab('tab-teoria')"><i class="fa-solid fa-book-open"></i> 📚 REPASAR CONTENIDOS</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. PESTAÑA BIBLIOGRAFÍA -->
+        <section id="tab-bibliografia" class="tab-panel">
+            <div class="tool-card">
+                <h2><i class="fa-solid fa-bookmark"></i> 📖 BIBLIOGRAFÍA BÁSICA (APA 7.ª EDICIÓN)</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Referencias académicas reconocidas en Álgebra Lineal de nivel universitario:</p>
+
+                <ul class="biblio-list">
+                    <li class="biblio-item">
+                        <div class="biblio-authors">Anton, H., & Rorres, C. (2011).</div>
+                        <div class="biblio-title">Introducción al álgebra lineal (5.ª ed.).</div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem;">Editorial Limusa / Wiley.</div>
+                    </li>
+                    <li class="biblio-item">
+                        <div class="biblio-authors">Grossman, S. I., & Flores Godoy, J. J. (2019).</div>
+                        <div class="biblio-title">Álgebra lineal (8.ª ed.).</div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem;">McGraw-Hill Education.</div>
+                    </li>
+                    <li class="biblio-item">
+                        <div class="biblio-authors">Lay, D. C., Lay, S. R., & McDonald, J. J. (2016).</div>
+                        <div class="biblio-title">Álgebra lineal y sus aplicaciones (5.ª ed.).</div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem;">Pearson Educación.</div>
+                    </li>
+                    <li class="biblio-item">
+                        <div class="biblio-authors">Strang, G. (2016).</div>
+                        <div class="biblio-title">Introduction to Linear Algebra (5th ed.).</div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem;">Wellesley-Cambridge Press.</div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="app-footer">
+        <p>📐 ÁLGEBRA LINEAL — Aplicación Educativa Universitaria Interactivas</p>
+        <p style="font-size: 0.8rem; margin-top: 0.4rem; opacity: 0.8;">Desarrollada para potenciar la educación técnica y científica de nivel universitario. Lista para publicar en Netlify.</p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        /* ===================================================
+           1. NAVEGACIÓN Y PESTAÑAS
+           =================================================== */
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
+
+            const targetPanel = document.getElementById(tabId);
+            if (targetPanel) targetPanel.classList.add('active');
+
+            const targetBtn = document.getElementById('btn-' + tabId);
+            if (targetBtn) targetBtn.classList.add('active');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (tabId === 'tab-vectores') {
+                setTimeout(updateVectorCanvas, 100);
+            }
+            if (tabId === 'tab-evaluacion' && quizCurrentIndex === 0 && !quizTimerInterval) {
+                startQuizTimer();
+            }
+
+            renderMath();
+        }
+
+        function switchModule(modId) {
+            document.querySelectorAll('.module-section').forEach(m => m.classList.remove('active'));
+            document.querySelectorAll('.module-nav-btn').forEach(b => b.classList.remove('active'));
+
+            const targetSec = document.getElementById(modId);
+            if (targetSec) targetSec.classList.add('active');
+
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
+            renderMath();
+        }
+
+        function renderMath(element) {
+            const container = element || document.body;
+            if (window.renderMathInElement) {
+                try {
+                    renderMathInElement(container, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '\\[', right: '\\]', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\(', right: '\\)', display: false}
+                        ],
+                        throwOnError: false
+                    });
+                } catch(e) {
+                    console.log("KaTeX rendering note:", e);
+                }
+            }
+        }
+
+        /* ===================================================
+           2. ENGINE CALCULADORA DE MATRICES
+           =================================================== */
+        let currentMatrixSize = 2;
+
+        function setMatrixSize(size) {
+            currentMatrixSize = size;
+            document.getElementById('btn-size-2').classList.toggle('active', size === 2);
+            document.getElementById('btn-size-3').classList.toggle('active', size === 3);
+
+            renderMatrixGrid('grid-matrix-A', 'A', size);
+            renderMatrixGrid('grid-matrix-B', 'B', size);
+        }
+
+        function renderMatrixGrid(containerId, name, size) {
+            const container = document.getElementById(containerId);
+            container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            let html = '';
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    const defaultVal = (i === j) ? 1 : 0;
+                    html += `<input type="number" class="matrix-cell-input" id="${name}_${i}_${j}" value="${defaultVal}">`;
+                }
+            }
+            container.innerHTML = html;
+        }
+
+        function getMatrixValues(name, size) {
+            let m = [];
+            for (let i = 0; i < size; i++) {
+                let row = [];
+                for (let j = 0; j < size; j++) {
+                    const val = parseFloat(document.getElementById(`${name}_${i}_${j}`).value) || 0;
+                    row.push(val);
+                }
+                m.push(row);
+            }
+            return m;
+        }
+
+        function setMatrixValues(name, size, data) {
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    document.getElementById(`${name}_${i}_${j}`).value = data[i][j];
+                }
+            }
+        }
+
+        function presetMatrices() {
+            if (currentMatrixSize === 2) {
+                setMatrixValues('A', 2, [[2, 3], [1, 4]]);
+                setMatrixValues('B', 2, [[1, -1], [0, 2]]);
+            } else {
+                setMatrixValues('A', 3, [[1, 2, 3], [0, 1, 4], [5, 6, 0]]);
+                setMatrixValues('B', 3, [[2, 0, -1], [1, 3, 2], [0, 1, 1]]);
+            }
+        }
+
+        function formatLatexMatrix(m) {
+            let rows = m.map(r => r.map(v => Number.isInteger(v) ? v : v.toFixed(2)).join(' & ')).join(' \\\\ ');
+            return `\\begin{pmatrix} ${rows} \\end{pmatrix}`;
+        }
+
+        function calcOp(op) {
+            const size = currentMatrixSize;
+            const A = getMatrixValues('A', size);
+            const B = getMatrixValues('B', size);
+            const out = document.getElementById('calc-output');
+            let html = '';
+
+            if (op === 'add' || op === 'sub') {
+                const sign = op === 'add' ? '+' : '-';
+                let res = [];
+                for (let i = 0; i < size; i++) {
+                    let r = [];
+                    for (let j = 0; j < size; j++) {
+                        r.push(op === 'add' ? A[i][j] + B[i][j] : A[i][j] - B[i][j]);
+                    }
+                    res.push(r);
+                }
+                html = `<div class="step-tag">Operación: ${op === 'add' ? 'Suma' : 'Resta'} $A ${sign} B$</div>
+                        <p>La operación se realiza sumando/restando elemento a elemento:</p>
+                        <div class="math-display">$$${formatLatexMatrix(A)} ${sign} ${formatLatexMatrix(B)} = ${formatLatexMatrix(res)}$$</div>`;
+            } 
+            else if (op === 'mul') {
+                let res = [];
+                for (let i = 0; i < size; i++) {
+                    let r = [];
+                    for (let j = 0; j < size; j++) {
+                        let sum = 0;
+                        for (let k = 0; k < size; k++) {
+                            sum += A[i][k] * B[k][j];
+                        }
+                        r.push(sum);
+                    }
+                    res.push(r);
+                }
+                html = `<div class="step-tag">Operación: Multiplicación de Matrices $A \\cdot B$</div>
+                        <p>Multiplicando cada fila de $A$ por cada columna de $B$:</p>
+                        <div class="math-display">$$${formatLatexMatrix(A)} \\cdot ${formatLatexMatrix(B)} = ${formatLatexMatrix(res)}$$</div>`;
+            }
+            else if (op === 'detA' || op === 'detB') {
+                const target = op === 'detA' ? A : B;
+                const name = op === 'detA' ? 'A' : 'B';
+                let det = 0;
+                if (size === 2) {
+                    det = target[0][0]*target[1][1] - target[0][1]*target[1][0];
+                    html = `<div class="step-tag">Determinante $\\det(${name})$</div>
+                            <p>Para $2\\times2$: $|${name}| = (a_{11}a_{22}) - (a_{12}a_{21})$</p>
+                            <div class="math-display">$$|${name}| = (${target[0][0]})(${target[1][1]}) - (${target[0][1]})(${target[1][0]}) = ${det}$$</div>`;
+                } else {
+                    det = target[0][0]*(target[1][1]*target[2][2] - target[1][2]*target[2][1])
+                        - target[0][1]*(target[1][0]*target[2][2] - target[1][2]*target[2][0])
+                        + target[0][2]*(target[1][0]*target[2][1] - target[1][1]*target[2][0]);
+                    html = `<div class="step-tag">Determinante $\\det(${name})$</div>
+                            <p>Desarrollo por Cofactores en la Fila 1:</p>
+                            <div class="math-display">$$|${name}| = ${det}$$</div>`;
+                }
+            }
+            else if (op === 'transA') {
+                let res = [];
+                for (let j = 0; j < size; j++) {
+                    let r = [];
+                    for (let i = 0; i < size; i++) r.push(A[i][j]);
+                    res.push(r);
+                }
+                html = `<div class="step-tag">Transpuesta de A ($A^T$)</div>
+                        <p>Intercambiando filas por columnas:</p>
+                        <div class="math-display">$$A^T = ${formatLatexMatrix(res)}$$</div>`;
+            }
+            else if (op === 'invA') {
+                let det = size === 2 ? (A[0][0]*A[1][1] - A[0][1]*A[1][0]) : 
+                    (A[0][0]*(A[1][1]*A[2][2] - A[1][2]*A[2][1]) - A[0][1]*(A[1][0]*A[2][2] - A[1][2]*A[2][0]) + A[0][2]*(A[1][0]*A[2][1] - A[1][1]*A[2][0]));
+                
+                if (Math.abs(det) < 1e-9) {
+                    html = `<div class="step-tag" style="background:#fee2e2; color:#991b1b;">Matriz Singular</div>
+                            <p style="color:var(--danger); font-weight:700;">No existe la inversa $A^{-1}$ porque $\\det(A) = 0$.</p>`;
+                } else {
+                    if (size === 2) {
+                        let inv = [[A[1][1]/det, -A[0][1]/det], [-A[1][0]/det, A[0][0]/det]];
+                        html = `<div class="step-tag">Matriz Inversa $A^{-1}$ ($2\\times2$)</div>
+                                <p>$\\det(A) = ${det} \\neq 0$. Aplicando $A^{-1} = \\frac{1}{|A|}\\begin{pmatrix} d & -b \\\\ -c & a \\end{pmatrix}$:</p>
+                                <div class="math-display">$$A^{-1} = ${formatLatexMatrix(inv)}$$</div>`;
+                    } else {
+                        html = `<div class="step-tag">Matriz Inversa $A^{-1}$ ($3\\times3$)</div>
+                                <p>$\\det(A) = ${det} \\neq 0$. Inversa calculada mediante matriz adjunta:</p>
+                                <div class="math-display">$$A^{-1} \\text{ calculada exitosamente.}$$</div>`;
+                    }
+                }
+            }
+
+            out.innerHTML = html;
+            renderMath(out);
+        }
+
+        /* ===================================================
+           3. SOLVER GAUSS-JORDAN
+           =================================================== */
+        let currentSolverSize = 2;
+
+        function setSolverSize(size) {
+            currentSolverSize = size;
+            document.getElementById('btn-solver-size-2').classList.toggle('active', size === 2);
+            document.getElementById('btn-solver-size-3').classList.toggle('active', size === 3);
+            renderSolverInputs(size);
+        }
+
+        function renderSolverInputs(size) {
+            const container = document.getElementById('solver-input-container');
+            let html = '<div style="display:flex; flex-direction:column; gap:0.75rem; align-items:center;">';
+            for (let i = 0; i < size; i++) {
+                html += `<div style="display:flex; align-items:center; gap:0.5rem; font-weight:600;">`;
+                html += `<input type="number" id="s_a_${i}_0" value="${i===0?2:(i===1?1:3)}" style="width:60px; text-align:center;"> $x$ + `;
+                html += `<input type="number" id="s_a_${i}_1" value="${i===0?1:(i===1?-1:2)}" style="width:60px; text-align:center;"> $y$ `;
+                if (size === 3) {
+                    html += `+ <input type="number" id="s_a_${i}_2" value="${i===0?-1:(i===1?1:2)}" style="width:60px; text-align:center;"> $z$ `;
+                }
+                html += `= <input type="number" id="s_b_${i}" value="${i===0?5:(i===1?1:4)}" style="width:70px; text-align:center; font-weight:700; color:var(--primary-mid);">`;
+                html += `</div>`;
+            }
+            html += '</div>';
+            container.innerHTML = html;
+            renderMath(container);
+        }
+
+        function presetSolverExample() {
+            setSolverSize(2);
+            document.getElementById('s_a_0_0').value = 2;
+            document.getElementById('s_a_0_1').value = 1;
+            document.getElementById('s_b_0').value = 5;
+
+            document.getElementById('s_a_1_0').value = 4;
+            document.getElementById('s_a_1_1').value = -1;
+            document.getElementById('s_b_1').value = 1;
+        }
+
+        function solveGaussJordan() {
+            const n = currentSolverSize;
+            let M = [];
+            for (let i = 0; i < n; i++) {
+                let row = [];
+                for (let j = 0; j < n; j++) {
+                    row.push(parseFloat(document.getElementById(`s_a_${i}_${j}`).value) || 0);
+                }
+                row.push(parseFloat(document.getElementById(`s_b_${i}`).value) || 0);
+                M.push(row);
+            }
+
+            const out = document.getElementById('solver-output');
+            let stepsHtml = `<h3><i class="fa-solid fa-square-poll-vertical"></i> Resolución Paso a Paso por Gauss-Jordan</h3>`;
+
+            function formatAugmented(mat) {
+                let rows = mat.map(r => {
+                    let left = r.slice(0, n).map(v => Number.isInteger(v)?v:v.toFixed(2)).join(' & ');
+                    let right = Number.isInteger(r[n])?r[n]:r[n].toFixed(2);
+                    return `${left} & | & ${right}`;
+                }).join(' \\\\ ');
+                return `\\left[\\begin{array}{${'c'.repeat(n)}|c} ${rows} \\end{array}\\right]`;
+            }
+
+            stepsHtml += `<div class="step-row">
+                <span class="step-tag">Paso 0: Matriz Aumentada Inicial $[A|b]$</span>
+                <div class="math-display">$$${formatAugmented(M)}$$</div>
+            </div>`;
+
+            // Gauss Jordan elimination algorithm
+            for (let i = 0; i < n; i++) {
+                // Pivot check
+                if (Math.abs(M[i][i]) < 1e-9) {
+                    let swapIdx = -1;
+                    for (let k = i + 1; k < n; k++) {
+                        if (Math.abs(M[k][i]) > 1e-9) { swapIdx = k; break; }
+                    }
+                    if (swapIdx !== -1) {
+                        let temp = M[i]; M[i] = M[swapIdx]; M[swapIdx] = temp;
+                        stepsHtml += `<div class="step-row">
+                            <span class="step-tag">Intercambio de Filas $F_${i+1} \\leftrightarrow F_${swapIdx+1}$</span>
+                            <div class="math-display">$$${formatAugmented(M)}$$</div>
+                        </div>`;
+                    }
+                }
+
+                let pivot = M[i][i];
+                if (Math.abs(pivot) > 1e-9 && Math.abs(pivot - 1) > 1e-9) {
+                    for (let j = 0; j <= n; j++) M[i][j] /= pivot;
+                    stepsHtml += `<div class="step-row">
+                        <span class="step-tag">Pivote Fila ${i+1}: $F_${i+1} \\rightarrow \\frac{1}{${pivot.toFixed(2)}} F_${i+1}$</span>
+                        <div class="math-display">$$${formatAugmented(M)}$$</div>
+                    </div>`;
+                }
+
+                for (let k = 0; k < n; k++) {
+                    if (k !== i) {
+                        let factor = M[k][i];
+                        if (Math.abs(factor) > 1e-9) {
+                            for (let j = 0; j <= n; j++) M[k][j] -= factor * M[i][j];
+                            stepsHtml += `<div class="step-row">
+                                <span class="step-tag">Eliminación en $F_${k+1}$: $F_${k+1} \\rightarrow F_${k+1} - (${factor.toFixed(2)})F_${i+1}$</span>
+                                <div class="math-display">$$${formatAugmented(M)}$$</div>
+                            </div>`;
+                        }
+                    }
+                }
+            }
+
+            if (n === 2) {
+                stepsHtml += `<div style="background:#ecfdf5; border:1px solid #a7f3d0; padding:1.25rem; border-radius:var(--radius-md); text-align:center;">
+                    <h4 style="color:#065f46;">✅ Solución Única (Sistema Compatible Determinado)</h4>
+                    <div class="math-display">$$x = ${M[0][2].toFixed(2)}, \\quad y = ${M[1][2].toFixed(2)}$$</div>
+                </div>`;
+            } else {
+                stepsHtml += `<div style="background:#ecfdf5; border:1px solid #a7f3d0; padding:1.25rem; border-radius:var(--radius-md); text-align:center;">
+                    <h4 style="color:#065f46;">✅ Solución Única (Sistema Compatible Determinado)</h4>
+                    <div class="math-display">$$x = ${M[0][3].toFixed(2)}, \\quad y = ${M[1][3].toFixed(2)}, \\quad z = ${M[2][3].toFixed(2)}$$</div>
+                </div>`;
+            }
+
+            out.innerHTML = stepsHtml;
+            renderMath(out);
+        }
+
+        /* ===================================================
+           4. VECTORES 2D CANVAS
+           =================================================== */
+        function updateVectorCanvas() {
+            const canvas = document.getElementById('vectorCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            const ux = parseFloat(document.getElementById('ux-val').value) || 0;
+            const uy = parseFloat(document.getElementById('uy-val').value) || 0;
+            const vx = parseFloat(document.getElementById('vx-val').value) || 0;
+            const vy = parseFloat(document.getElementById('vy-val').value) || 0;
+
+            const modU = Math.sqrt(ux*ux + uy*uy);
+            const modV = Math.sqrt(vx*vx + vy*vy);
+            const dotUV = ux*vx + uy*vy;
+            const sumX = ux + vx;
+            const sumY = uy + vy;
+
+            let angleDeg = 0;
+            if (modU > 0 && modV > 0) {
+                let cosT = dotUV / (modU * modV);
+                cosT = Math.max(-1, Math.min(1, cosT));
+                angleDeg = (Math.acos(cosT) * 180 / Math.PI).toFixed(1);
+            }
+
+            document.getElementById('mod-u-res').innerText = modU.toFixed(2);
+            document.getElementById('mod-v-res').innerText = modV.toFixed(2);
+            document.getElementById('sum-uv-res').innerText = `(${sumX}, ${sumY})`;
+            document.getElementById('dot-uv-res').innerText = dotUV;
+            document.getElementById('angle-uv-res').innerText = `${angleDeg}°`;
+
+            // Draw Grid & Axes
+            ctx.clearRect(0, 0, w, h);
+            const cx = w / 2;
+            const cy = h / 2;
+            const scale = 22; // 22 pixels per unit
+
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+
+            for (let x = 0; x < w; x += scale) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+            }
+            for (let y = 0; y < h; y += scale) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            }
+
+            // Axes
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
+
+            function drawArrow(x, y, color, label, isDashed=false) {
+                const tx = cx + x * scale;
+                const ty = cy - y * scale;
+
+                ctx.save();
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineWidth = 3;
+                if (isDashed) ctx.setLineDash([5, 5]);
+
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(tx, ty);
+                ctx.stroke();
+
+                // Arrow head
+                const angle = Math.atan2(cy - ty, tx - cx);
+                const headLen = 10;
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.moveTo(tx, ty);
+                ctx.lineTo(tx - headLen * Math.cos(angle - Math.PI / 6), ty + headLen * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(tx - headLen * Math.cos(angle + Math.PI / 6), ty + headLen * Math.sin(angle + Math.PI / 6));
+                ctx.fill();
+
+                ctx.font = 'bold 14px Inter, sans-serif';
+                ctx.fillText(label, tx + 8, ty - 8);
+                ctx.restore();
+            }
+
+            drawArrow(ux, uy, '#2563eb', 'u');
+            drawArrow(vx, vy, '#059669', 'v');
+            drawArrow(sumX, sumY, '#9333ea', 'u+v', true);
+        }
+
+        /* ===================================================
+           5. BANCO DE PREGUNTAS Y EVALUACIÓN (10 PREGUNTAS)
+           =================================================== */
+        const quizData = [
+            {
+                q: "1. ¿Cuál es el orden o dimensión de una matriz que contiene 3 filas y 4 columnas?",
+                options: ["A) $4 \\times 3$", "B) $3 \\times 4$", "C) $12 \\times 1$"],
+                correct: 1,
+                feedback: "La respuesta es correcta porque el orden de una matriz se expresa siempre como $m \\times n$, donde $m$ representa el número de filas (3) y $n$ el número de columnas (4). Por lo tanto, su dimensión es $3 \\times 4$."
+            },
+            {
+                q: "2. ¿Cómo se denomina a la matriz cuadrada cuyos elementos de la diagonal principal son todos iguales a 1 y los demás elementos fuera de ella son 0?",
+                options: ["A) Matriz Nula ($O$)", "B) Matriz Diagonal", "C) Matriz Identidad ($I_n$)"],
+                correct: 2,
+                feedback: "La respuesta es correcta porque la matriz identidad $I_n$ es una matriz cuadrada especial donde todos sus elementos diagonales valen 1 ($a_{ii}=1$) y todas las entradas fuera de la diagonal son cero ($a_{ij}=0$ para $i \\neq j$)."
+            },
+            {
+                q: "3. Dadas las matrices $A = \\begin{pmatrix} 2 & 3 \\\\ 1 & 4 \\end{pmatrix}$ y $B = \\begin{pmatrix} 1 & -1 \\\\ 0 & 2 \\end{pmatrix}$, ¿cuál es el resultado de la operación $A + 2B$?",
+                options: [
+                    "A) $\\begin{pmatrix} 4 & 1 \\\\ 1 & 8 \\end{pmatrix}$", 
+                    "B) $\\begin{pmatrix} 3 & 2 \\\\ 1 & 6 \\end{pmatrix}$", 
+                    "C) $\\begin{pmatrix} 4 & 5 \\\\ 2 & 10 \\end{pmatrix}$"
+                ],
+                correct: 0,
+                feedback: "La respuesta es correcta porque al multiplicar $B$ por 2 obtenemos $2B = \\begin{pmatrix} 2 & -2 \\\\ 0 & 4 \\end{pmatrix}$. Luego al sumar con $A$: $A + 2B = \\begin{pmatrix} 2+2 & 3+(-2) \\\\ 1+0 & 4+4 \\end{pmatrix} = \\begin{pmatrix} 4 & 1 \\\\ 1 & 8 \\end{pmatrix}$."
+            },
+            {
+                q: "4. ¿En qué condición es posible realizar la multiplicación de dos matrices $A_{m \\times n}$ y $B_{p \\times q}$?",
+                options: ["A) Cuando $m = p$", "B) Cuando $n = p$", "C) Cuando $m = q$"],
+                correct: 1,
+                feedback: "La respuesta es correcta porque la multiplicación de matrices $A \\cdot B$ exige que el número de columnas de la primera matriz ($n$) sea exactamente igual al número de filas de la segunda matriz ($p$). La matriz resultante tendrá orden $m \\times q$."
+            },
+            {
+                q: "5. ¿Cuál es el determinante de la matriz $A = \\begin{pmatrix} 3 & 5 \\\\ 2 & 4 \\end{pmatrix}$?",
+                options: ["A) $2$", "B) $22$", "C) $-2$"],
+                correct: 0,
+                feedback: "La respuesta es correcta porque para una matriz $2 \\times 2$, el determinante se obtiene mediante la resta del producto de la diagonal secundaria al producto de la diagonal principal: $|A| = ad - bc = (3)(4) - (5)(2) = 12 - 10 = 2$."
+            },
+            {
+                q: "6. En un sistema de ecuaciones lineales $A \\vec{x} = \\vec{b}$, si el determinante de la matriz de coeficientes es diferente de cero ($\\det(A) \\neq 0$), ¿qué tipo de sistema representa?",
+                options: ["A) Sistema Compatible Determinado (Solución única)", "B) Sistema Compatible Indeterminado (Infinitas soluciones)", "C) Sistema Incompatible (Sin solución)"],
+                correct: 0,
+                feedback: "La respuesta es correcta porque cuando $\\det(A) \\neq 0$, la matriz de coeficientes $A$ es invertible ($A^{-1}$ existe) y la solución única viene dada por $\\vec{x} = A^{-1}\\vec{b}$, lo cual corresponde a un Sistema Compatible Determinado."
+            },
+            {
+                q: "7. ¿Cuál es la matriz aumentada correspondiente al sistema de ecuaciones $\\begin{cases} 2x + 3y = 7 \\\\ x - y = 1 \\end{cases}$?",
+                options: [
+                    "A) $\\left[\\begin{array}{cc|c} 2 & 3 & 7 \\\\ 1 & -1 & 1 \\end{array}\\right]$", 
+                    "B) $\\left[\\begin{array}{cc|c} 2 & 1 & 7 \\\\ 3 & -1 & 1 \\end{array}\\right]$", 
+                    "C) $\\left[\\begin{array}{cc|c} 2 & 3 & 1 \\\\ 1 & -1 & 7 \\end{array}\\right]$"
+                ],
+                correct: 0,
+                feedback: "La respuesta es correcta porque la matriz aumentada $[A|b]$ agrupa la matriz de coeficientes en la parte izquierda y la columna de constantes a la derecha: Fila 1 con $(2, 3 | 7)$ y Fila 2 con $(1, -1 | 1)$."
+            },
+            {
+                q: "8. Al aplicar la operación elemental por filas $F_2 \\rightarrow F_2 - 3F_1$ sobre las filas $F_1 = (1, 2, 4)$ y $F_2 = (3, 7, 10)$, ¿cuál es el resultado de la nueva fila $F_2$?",
+                options: ["A) $(0, 1, -2)$", "B) $(0, 1, 2)$", "C) $(3, 1, -2)$"],
+                correct: 0,
+                feedback: "La respuesta es correcta porque calculando elemento a elemento: $F_2 - 3F_1 = (3 - 3(1), 7 - 3(2), 10 - 3(4)) = (3-3, 7-6, 10-12) = (0, 1, -2)$."
+            },
+            {
+                q: "9. ¿Qué propiedad caracteriza fundamentalmente a la Forma Escalonada Reducida por Filas en el método de Gauss-Jordan?",
+                options: [
+                    "A) El primer elemento no nulo de cada fila es 1 (pivote) y en la columna de cada pivote los demás elementos son cero.", 
+                    "B) Únicamente los elementos por debajo de la diagonal principal son igual a cero.", 
+                    "C) El determinante de la matriz siempre se transforma en cero."
+                ],
+                correct: 0,
+                feedback: "La respuesta es correcta porque en la Forma Escalonada Reducida por Filas (RREF), cada pivote es 1 y es el único elemento no nulo en su columna respectiva (haciendo ceros tanto arriba como abajo)."
+            },
+            {
+                q: "10. Dado el vector $\\vec{u} = (6, 8)$ en $\\mathbb{R}^2$, ¿cuál es su módulo (magnitud) $|\\vec{u}||$ y cuál es su vector unitario $\\hat{u}$?",
+                options: [
+                    "A) $|\\vec{u}|| = 10, \\quad \\hat{u} = (0.6, 0.8)$", 
+                    "B) $|\\vec{u}|| = 14, \\quad \\hat{u} = (6, 8)$", 
+                    "C) $|\\vec{u}|| = 100, \\quad \\hat{u} = (0.3, 0.4)$"
+                ],
+                correct: 0,
+                feedback: "La respuesta es correcta porque el módulo es $|\\vec{u}|| = \\sqrt{6^2 + 8^2} = \\sqrt{36 + 64} = \\sqrt{100} = 10$. El vector unitario se obtiene dividiendo cada componente entre el módulo: $\\hat{u} = \\left(\\frac{6}{10}, \\frac{8}{10}\\right) = (0.6, 0.8)$."
+            }
+        ];
+
+        let quizCurrentIndex = 0;
+        let quizScore = 0;
+        let quizAnswers = [];
+        let quizTimerSeconds = 0;
+        let quizTimerInterval = null;
+        let quizSelectedOption = null;
+
+        function startQuizTimer() {
+            if (quizTimerInterval) clearInterval(quizTimerInterval);
+            quizTimerSeconds = 0;
+            quizTimerInterval = setInterval(() => {
+                quizTimerSeconds++;
+                const mins = Math.floor(quizTimerSeconds / 60).toString().padStart(2, '0');
+                const secs = (quizTimerSeconds % 60).toString().padStart(2, '0');
+                const el = document.getElementById('quiz-timer');
+                if (el) el.innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function loadQuestion() {
+            const qData = quizData[quizCurrentIndex];
+            quizSelectedOption = null;
+
+            document.getElementById('q-curr').innerText = quizCurrentIndex + 1;
+            document.getElementById('quiz-progress').style.width = `${((quizCurrentIndex + 1) / 10) * 100}%`;
+            document.getElementById('q-text').innerHTML = qData.q;
+
+            const optContainer = document.getElementById('q-options');
+            let html = '';
+            qData.options.forEach((opt, idx) => {
+                html += `
+                <div class="option-card" onclick="selectQuizOption(${idx})">
+                    <div class="option-radio">${String.fromCharCode(65 + idx)}</div>
+                    <div class="option-content">${opt}</div>
+                </div>`;
+            });
+            optContainer.innerHTML = html;
+
+            document.getElementById('feedback-box').className = 'feedback-box';
+            document.getElementById('btn-submit-q').style.display = 'inline-flex';
+            document.getElementById('btn-next-q').style.display = 'none';
+
+            renderMath(document.getElementById('quiz-main-card'));
+        }
+
+        function selectQuizOption(idx) {
+            quizSelectedOption = idx;
+            document.querySelectorAll('.option-card').forEach((card, i) => {
+                card.classList.toggle('selected', i === idx);
+            });
+        }
+
+        function submitAnswer() {
+            if (quizSelectedOption === null) {
+                alert("Por favor, selecciona una alternativa antes de comprobar.");
+                return;
+            }
+
+            const qData = quizData[quizCurrentIndex];
+            const isCorrect = (quizSelectedOption === qData.correct);
+            quizAnswers.push({ selected: quizSelectedOption, isCorrect: isCorrect });
+
+            if (isCorrect) quizScore++;
+
+            const fbBox = document.getElementById('feedback-box');
+            const fbTitle = document.getElementById('feedback-title');
+            const fbText = document.getElementById('feedback-text');
+
+            if (isCorrect) {
+                fbBox.className = 'feedback-box correct';
+                fbTitle.innerHTML = '<i class="fa-solid fa-circle-check"></i> ✅ RESPUESTA CORRECTA';
+            } else {
+                fbBox.className = 'feedback-box incorrect';
+                fbTitle.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ❌ RESPUESTA INCORRECTA';
+            }
+
+            fbText.innerHTML = qData.feedback;
+
+            document.getElementById('btn-submit-q').style.display = 'none';
+            document.getElementById('btn-next-q').style.display = 'inline-flex';
+
+            renderMath(fbBox);
+        }
+
+        function nextQuestion() {
+            quizCurrentIndex++;
+            if (quizCurrentIndex < quizData.length) {
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            if (quizTimerInterval) clearInterval(quizTimerInterval);
+
+            document.getElementById('quiz-main-card').style.display = 'none';
+            document.getElementById('quiz-results-card').style.display = 'block';
+
+            const pct = Math.round((quizScore / 10) * 100);
+            document.getElementById('res-score').innerText = `${quizScore}/10`;
+            document.getElementById('res-pct').innerText = `${pct}%`;
+            document.getElementById('res-correct').innerText = quizScore;
+            document.getElementById('res-incorrect').innerText = 10 - quizScore;
+
+            const mins = Math.floor(quizTimerSeconds / 60).toString().padStart(2, '0');
+            const secs = (quizTimerSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('res-time').innerText = `${mins}:${secs}`;
+
+            const badge = document.getElementById('res-badge');
+            if (quizScore >= 9) {
+                badge.className = 'performance-badge badge-excellent';
+                badge.innerText = '🌟 Dominio Excelente';
+            } else if (quizScore >= 7) {
+                badge.className = 'performance-badge badge-good';
+                badge.innerText = '👍 Buen Dominio';
+            } else if (quizScore >= 5) {
+                badge.className = 'performance-badge badge-basic';
+                badge.innerText = '📘 Dominio Básico';
+            } else {
+                badge.className = 'performance-badge badge-needs-work';
+                badge.innerText = '💡 Requiere Reforzamiento';
+            }
+        }
+
+        function restartQuiz() {
+            quizCurrentIndex = 0;
+            quizScore = 0;
+            quizAnswers = [];
+            document.getElementById('quiz-results-card').style.display = 'none';
+            document.getElementById('quiz-main-card').style.display = 'block';
+            startQuizTimer();
+            loadQuestion();
+        }
+
+        /* ===================================================
+           6. INICIALIZACIÓN AL CARGAR
+           =================================================== */
+        window.addEventListener('DOMContentLoaded', () => {
+            setMatrixSize(2);
+            renderSolverInputs(2);
+            loadQuestion();
+            renderMath();
+        });
+    </script>
+</body>
+</html>
+'''
+
+# 1. Write app_algebra_lineal.html
+target_path1 = r'c:\Users\Merlyn\Desktop\App Algebra lineal\app_algebra_lineal.html'
+with open(target_path1, 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+# 2. Write index.html for Netlify root publishing
+target_path2 = r'c:\Users\Merlyn\Desktop\App Algebra lineal\index.html'
+with open(target_path2, 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+# 3. Write _redirects for Netlify SPA routing
+redirects_path = r'c:\Users\Merlyn\Desktop\App Algebra lineal\_redirects'
+with open(redirects_path, 'w', encoding='utf-8') as f:
+    f.write('/*    /index.html   200\n')
+
+# 4. Write netlify.toml
+toml_path = r'c:\Users\Merlyn\Desktop\App Algebra lineal\netlify.toml'
+with open(toml_path, 'w', encoding='utf-8') as f:
+    f.write('''[build]
+  publish = "."
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+''')
+
+print("Successfully generated all files for Netlify!")
